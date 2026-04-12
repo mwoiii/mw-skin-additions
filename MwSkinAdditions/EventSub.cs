@@ -1,0 +1,163 @@
+﻿using RoR2;
+using System;
+using UnityEngine;
+
+namespace MwSkinAdditions {
+    public class EventSub {
+
+        public SkinDef skinDef;
+
+        public BoneTransformation[] boneTransformations;
+
+        public ExtraObject[] extraObjects;
+
+        public static Action<GameObject> DifferentSkinAppliedGlobal;
+
+        public Action<GameObject> SkinAppliedLobby;
+
+        public Action<GameObject> SkinAppliedRun;
+
+        public Action<GameObject, DamageReport> TakeDamage;
+
+        public Action<GameObject> Death;
+
+        public Action<GameObject> DefeatBossGroup;
+
+        public Action<GameObject> LeavePod;
+
+        public Action<GameObject> UsePrimary;
+
+        public Action<GameObject> UseSecondary;
+
+        public Action<GameObject> UseUtility;
+
+        public Action<GameObject> UseSpecial;
+
+        public Action<GameObject> ShrineSuccess;
+
+        public Action<GameObject> ShrineFailure;
+
+        public Action<GameObject> TeleporterStart;
+
+        public Action<GameObject> TeleporterEnd;
+
+        public Action<GameObject> BearDamageBlock;
+
+        public Action<GameObject> LevelUp;
+
+        public Action<GameObject> MithrixDefeat;
+
+        public Action<GameObject> UseEquipment;
+
+        public Action<GameObject, float> Heal;
+
+        public Action<GameObject> Jump;
+
+        public Action<GameObject> LeaveStage;
+
+        public Action<GameObject> Idle;
+
+        public Action<GameObject, ItemIndex> GetItem;
+
+        public Action<GameObject> HoldoutZoneCharged;
+
+        public EventSub(SkinDef skinDef, BoneTransformation[] boneTransformations = null, ExtraObject[] extraObjects = null) {
+            this.skinDef = skinDef;
+            this.boneTransformations = boneTransformations;
+            this.extraObjects = extraObjects;
+        }
+
+        public void Init() {
+            SkinEvents.SubscribeEventSkin(this);
+            if (boneTransformations != null) {
+                SubscribeTransformEvents();
+            }
+
+            if (extraObjects != null) {
+                SubscribeExtraObjectEvents();
+            }
+        }
+
+        private void SubscribeTransformEvents() {
+            SkinAppliedRun += AddTransformControllerRun;
+            SkinAppliedLobby += AddTransformControllerLobby;
+            Death += DisableTransformController;
+        }
+
+        private void AddTransformControllerRun(GameObject body) {
+            TransformController transformController = body.AddComponent<TransformController>();
+            transformController.Init(this);
+            transformController.isInRun = true;
+        }
+
+        private void AddTransformControllerLobby(GameObject body) {
+            TransformController transformController = body.GetComponent<TransformController>();
+            if (transformController == null) {
+                transformController = body.AddComponent<TransformController>();
+            }
+            transformController.Init(this);
+            transformController.isInRun = false;
+        }
+
+        public static void RemoveTransformController(GameObject body) {
+            TransformController transformController = body?.GetComponent<TransformController>();
+            if (transformController != null) {
+                UnityEngine.Object.Destroy(transformController);
+            }
+        }
+
+        public void DisableTransformController(GameObject body) {
+            TransformController transformController = body?.GetComponent<TransformController>();
+            if (transformController != null) {
+                transformController.enabled = false;
+            }
+        }
+
+        private void SubscribeExtraObjectEvents() {
+            SkinAppliedRun += AddExtraObjects;
+            SkinAppliedLobby += AddExtraObjects;
+        }
+
+        private void AddExtraObjects(GameObject body) {
+            Transform model = GetModelFromEventBody(body).transform;
+            ExtraObjectController extraObjectController = body.AddComponent<ExtraObjectController>();
+
+            foreach (ExtraObject extraObject in extraObjects) {
+                GameObject obj = UnityEngine.Object.Instantiate(extraObject.prefab);
+                obj.transform.parent = model.Find(extraObject.armatureParentPath);
+                obj.transform.localPosition = extraObject.localPosition;
+                obj.transform.localEulerAngles = extraObject.localEulerAngles;
+                obj.transform.localScale = extraObject.localScale;
+                extraObjectController.extraObjs.Add(obj);
+            }
+        }
+
+        public static void RemoveExtraObjects(GameObject body) {
+            ExtraObjectController extraObjectController = body.GetComponent<ExtraObjectController>();
+
+            if (extraObjectController != null) {
+                foreach (GameObject obj in extraObjectController.extraObjs) {
+                    UnityEngine.Object.Destroy(obj);
+                }
+
+                UnityEngine.Object.Destroy(extraObjectController);
+            }
+        }
+
+        /// <summary>
+        /// Gets the model GameObject which houses the armature.
+        /// 
+        /// Events that fire in the CSS will return the model GameObject, whereas events that fire in a run will return the body GameObject, which is a separate thing.
+        /// Given either the model or body GameObject, this method will return the model GameObject by checking if a run is active or not.
+        /// </summary>
+        /// <param name="body"></param>
+        /// <returns></returns>
+        public static GameObject GetModelFromEventBody(GameObject body) {
+            if (Run.instance != null) {
+                return body.GetComponent<ModelLocator>().modelTransform.gameObject;
+            } else {
+                return body;
+            }
+        }
+    }
+}
