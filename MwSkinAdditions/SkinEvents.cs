@@ -50,8 +50,8 @@ namespace MwSkinAdditions {
         }
 
         public static void SubscribeGlobalEvents() {
-            EventSub.DifferentSkinAppliedGlobal += EventSub.RemoveTransformController;
-            EventSub.DifferentSkinAppliedGlobal += EventSub.RemoveExtraObjects;
+            EventSub.DifferentSkinAppliedGlobal += RemoveTransformController;
+            EventSub.DifferentSkinAppliedGlobal += RemoveExtraObjects;
         }
 
         public static EventSub GetEventSubFromBody(GameObject body) {
@@ -289,6 +289,45 @@ namespace MwSkinAdditions {
                         eventSub.LeaveStage?.Invoke(bodyObject);
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Gets the model GameObject which houses the armature.
+        /// 
+        /// Events that fire in the CSS will return the model GameObject, whereas events that fire in a run will return the body GameObject, which is a separate thing.
+        /// Given either the model or body GameObject, this method will return the model GameObject by checking if a run is active or not.
+        /// </summary>
+        /// <param name="body"></param>
+        /// <returns></returns>
+        public static GameObject GetModelFromEventBody(GameObject body) {
+            if (Run.instance != null && body) {
+                return body.GetComponent<ModelLocator>()?.modelTransform?.gameObject;
+            } else {
+                return body;
+            }
+        }
+
+        public static ExpressionController GetExpressionController(GameObject body) {
+            return GetModelFromEventBody(body)?.GetComponent<ExpressionController>();
+        }
+
+        public static void RemoveExtraObjects(GameObject body) {
+            ExtraObjectController extraObjectController = body.GetComponent<ExtraObjectController>();
+
+            if (extraObjectController != null) {
+                foreach (GameObject obj in extraObjectController.extraObjs) {
+                    UnityEngine.Object.Destroy(obj);
+                }
+
+                UnityEngine.Object.Destroy(extraObjectController);
+            }
+        }
+
+        public static void RemoveTransformController(GameObject body) {
+            TransformController transformController = body?.GetComponent<TransformController>();
+            if (transformController != null) {
+                UnityEngine.Object.Destroy(transformController);
             }
         }
 

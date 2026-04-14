@@ -11,6 +11,13 @@ namespace MwSkinAdditions {
 
         public ExtraObject[] extraObjects;
 
+        public bool useAnimations = false;
+
+        public BlendShapeAnimation[] blinkAnimations;
+
+        public IdleAnimation[] conditionalIdleAnimations;
+
+
         public static Action<GameObject> DifferentSkinAppliedGlobal;
 
         public Action<GameObject> SkinAppliedLobby;
@@ -61,10 +68,14 @@ namespace MwSkinAdditions {
 
         public Action<GameObject> HoldoutZoneCharged;
 
-        public EventSub(SkinDef skinDef, BoneTransformation[] boneTransformations = null, ExtraObject[] extraObjects = null) {
+        public EventSub(SkinDef skinDef, BoneTransformation[] boneTransformations = null, ExtraObject[] extraObjects = null,
+                        bool useAnimations = false, BlendShapeAnimation[] blinkAnimations = null, IdleAnimation[] conditionalIdleAnimations = null) {
             this.skinDef = skinDef;
             this.boneTransformations = boneTransformations;
             this.extraObjects = extraObjects;
+            this.useAnimations = useAnimations;
+            this.blinkAnimations = blinkAnimations;
+            this.conditionalIdleAnimations = conditionalIdleAnimations;
         }
 
         public void Init() {
@@ -76,34 +87,24 @@ namespace MwSkinAdditions {
             if (extraObjects != null) {
                 SubscribeExtraObjectEvents();
             }
+
+            if (useAnimations) {
+                SubscribeAnimationEvents();
+            }
         }
 
         private void SubscribeTransformEvents() {
-            SkinAppliedRun += AddTransformControllerRun;
-            SkinAppliedLobby += AddTransformControllerLobby;
+            SkinAppliedRun += AddTransformController;
+            SkinAppliedLobby += AddTransformController;
             Death += DisableTransformController;
         }
 
-        private void AddTransformControllerRun(GameObject body) {
-            TransformController transformController = body.AddComponent<TransformController>();
-            transformController.Init(this);
-            transformController.isInRun = true;
-        }
-
-        private void AddTransformControllerLobby(GameObject body) {
+        private void AddTransformController(GameObject body) {
             TransformController transformController = body.GetComponent<TransformController>();
             if (transformController == null) {
                 transformController = body.AddComponent<TransformController>();
             }
             transformController.Init(this);
-            transformController.isInRun = false;
-        }
-
-        public static void RemoveTransformController(GameObject body) {
-            TransformController transformController = body?.GetComponent<TransformController>();
-            if (transformController != null) {
-                UnityEngine.Object.Destroy(transformController);
-            }
         }
 
         public void DisableTransformController(GameObject body) {
@@ -119,7 +120,7 @@ namespace MwSkinAdditions {
         }
 
         private void AddExtraObjects(GameObject body) {
-            Transform model = GetModelFromEventBody(body).transform;
+            Transform model = SkinEvents.GetModelFromEventBody(body).transform;
             ExtraObjectController extraObjectController = body.AddComponent<ExtraObjectController>();
 
             foreach (ExtraObject extraObject in extraObjects) {
@@ -132,32 +133,17 @@ namespace MwSkinAdditions {
             }
         }
 
-        public static void RemoveExtraObjects(GameObject body) {
-            ExtraObjectController extraObjectController = body.GetComponent<ExtraObjectController>();
-
-            if (extraObjectController != null) {
-                foreach (GameObject obj in extraObjectController.extraObjs) {
-                    UnityEngine.Object.Destroy(obj);
-                }
-
-                UnityEngine.Object.Destroy(extraObjectController);
-            }
+        private void SubscribeAnimationEvents() {
+            SkinAppliedRun += AddExpressionController;
+            SkinAppliedLobby += AddExpressionController;
         }
 
-        /// <summary>
-        /// Gets the model GameObject which houses the armature.
-        /// 
-        /// Events that fire in the CSS will return the model GameObject, whereas events that fire in a run will return the body GameObject, which is a separate thing.
-        /// Given either the model or body GameObject, this method will return the model GameObject by checking if a run is active or not.
-        /// </summary>
-        /// <param name="body"></param>
-        /// <returns></returns>
-        public static GameObject GetModelFromEventBody(GameObject body) {
-            if (Run.instance != null) {
-                return body.GetComponent<ModelLocator>().modelTransform.gameObject;
-            } else {
-                return body;
+        private void AddExpressionController(GameObject body) {
+            ExpressionController expressionController = body.GetComponent<ExpressionController>();
+            if (expressionController == null) {
+                expressionController = body.AddComponent<ExpressionController>();
             }
+            expressionController.Init(this);
         }
     }
 }

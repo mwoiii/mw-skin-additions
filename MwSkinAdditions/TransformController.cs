@@ -1,10 +1,7 @@
-using RoR2;
 using UnityEngine;
 
 namespace MwSkinAdditions {
     public class TransformController : MonoBehaviour {
-
-        public bool isInRun;
 
         private EventSub eventSub;
 
@@ -15,26 +12,13 @@ namespace MwSkinAdditions {
         }
 
         private void Start() {
-            if (isInRun) {
-                AssignLimbsRun();
-            } else {
-                AssignLimbsLobby();
-            }
+            AssignLimbs();
         }
-
-        private void AssignLimbsRun() {
+        private void AssignLimbs() {
             boneTransforms = new Transform[eventSub.boneTransformations.Length];
 
             for (int i = 0; i < boneTransforms.Length; i++) {
-                boneTransforms[i] = GetComponent<ModelLocator>().modelTransform.transform.Find(eventSub.boneTransformations[i].armaturePath);
-            }
-        }
-
-        private void AssignLimbsLobby() {
-            boneTransforms = new Transform[eventSub.boneTransformations.Length];
-
-            for (int i = 0; i < boneTransforms.Length; i++) {
-                boneTransforms[i] = transform.Find(eventSub.boneTransformations[i].armaturePath);
+                boneTransforms[i] = SkinEvents.GetModelFromEventBody(gameObject).transform.Find(eventSub.boneTransformations[i].armaturePath);
             }
         }
 
