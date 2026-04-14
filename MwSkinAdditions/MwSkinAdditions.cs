@@ -21,6 +21,8 @@ namespace MwSkinAdditions {
             Log.Init(Logger);
 
             SkinEvents.Init();
+
+            RoR2.RoR2Application.onStart += () => { new ContentPacks().Initialize(); };
         }
     }
 }

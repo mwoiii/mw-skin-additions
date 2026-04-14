@@ -17,6 +17,8 @@ namespace MwSkinAdditions {
 
         public IdleAnimation[] conditionalIdleAnimations;
 
+        public VoiceGroup[] voiceGroups;
+
 
         public static Action<GameObject> DifferentSkinAppliedGlobal;
 
@@ -69,13 +71,15 @@ namespace MwSkinAdditions {
         public Action<GameObject> HoldoutZoneCharged;
 
         public EventSub(SkinDef skinDef, BoneTransformation[] boneTransformations = null, ExtraObject[] extraObjects = null,
-                        bool useAnimations = false, BlendShapeAnimation[] blinkAnimations = null, IdleAnimation[] conditionalIdleAnimations = null) {
+                        bool useAnimations = false, BlendShapeAnimation[] blinkAnimations = null, IdleAnimation[] conditionalIdleAnimations = null,
+                        VoiceGroup[] voiceGroups = null) {
             this.skinDef = skinDef;
             this.boneTransformations = boneTransformations;
             this.extraObjects = extraObjects;
             this.useAnimations = useAnimations;
             this.blinkAnimations = blinkAnimations;
             this.conditionalIdleAnimations = conditionalIdleAnimations;
+            this.voiceGroups = voiceGroups;
         }
 
         public void Init() {
@@ -90,6 +94,10 @@ namespace MwSkinAdditions {
 
             if (useAnimations) {
                 SubscribeAnimationEvents();
+            }
+
+            if (voiceGroups != null) {
+                SubscribeVoiceEvents();
             }
         }
 
@@ -144,6 +152,19 @@ namespace MwSkinAdditions {
                 expressionController = body.AddComponent<ExpressionController>();
             }
             expressionController.Init(this);
+        }
+
+        private void SubscribeVoiceEvents() {
+            SkinAppliedRun += AddVoiceController;
+            SkinAppliedLobby += AddVoiceController;
+        }
+
+        private void AddVoiceController(GameObject body) {
+            VoiceController voiceController = body.GetComponent<VoiceController>();
+            if (voiceController == null) {
+                voiceController = body.AddComponent<VoiceController>();
+            }
+            voiceController.Init(this);
         }
     }
 }
