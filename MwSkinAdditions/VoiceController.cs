@@ -17,12 +17,13 @@ namespace MwSkinAdditions {
         private float currentSoundWait;
 
         // stopwatches adding deltatime every frame for sound probability
-        private Dictionary<VoiceGroup, float> voiceGroupStopwatches = new Dictionary<VoiceGroup, float>();
+        private Dictionary<VoiceGroup, float> voiceGroupStopwatches;
 
         // the previous index of the played sound, stored so that unique voicelines can play sequentially
         private Dictionary<VoiceArray, int> lastPlayedIndex = new Dictionary<VoiceArray, int>();
 
         public void Init(EventSub eventSub) {
+            voiceGroupStopwatches = new Dictionary<VoiceGroup, float>();
             foreach (VoiceGroup voiceGroup in eventSub.voiceGroups) {
                 voiceGroupStopwatches.Add(voiceGroup, 0f);
             }

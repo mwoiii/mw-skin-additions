@@ -8,6 +8,8 @@
 
         public VoiceGroup(VoiceArray[] voiceArrays, float minWait, float maxWait) {
             this.voiceArrays = voiceArrays;
+            this.minWait = minWait;
+            this.maxWait = maxWait;
 
             foreach (VoiceArray voiceArray in voiceArrays) {
                 voiceArray.group = this;

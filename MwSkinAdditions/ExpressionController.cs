@@ -42,6 +42,7 @@ namespace MwSkinAdditions {
             public Coroutine coroutine;
             public BlendShapeAnimation animation;
             public SkinnedMeshRenderer skinnedMeshRenderer;
+            public bool finished;
         }
         public void Init(EventSub eventSub) {
             this.eventSub = eventSub;
@@ -74,11 +75,12 @@ namespace MwSkinAdditions {
             }
 
             if (GetFeatureActive(animation.feature) == false) {
-                featureStates[animation.feature] = new ExpressionState {
-                    coroutine = StartCoroutine(ExpressionRoutine(animation, renderer)),
+                ExpressionState expressionState = new ExpressionState {
                     animation = animation,
                     skinnedMeshRenderer = renderer,
                 };
+                expressionState.coroutine = StartCoroutine(ExpressionRoutine(animation, renderer, expressionState));
+                featureStates[animation.feature] = expressionState;
 
                 if (animation.blockBlinking) {
                     blinkStoppers += 1;
@@ -86,7 +88,7 @@ namespace MwSkinAdditions {
             }
         }
 
-        private IEnumerator ExpressionRoutine(BlendShapeAnimation animation, SkinnedMeshRenderer renderer) {
+        private IEnumerator ExpressionRoutine(BlendShapeAnimation animation, SkinnedMeshRenderer renderer, ExpressionState expressionState) {
 
             float stopwatch = 0f;
 
@@ -116,9 +118,11 @@ namespace MwSkinAdditions {
             if (animation.blockBlinking) {
                 blinkStoppers -= 1;
             }
+
+            expressionState.finished = true;
         }
 
-        private void CancelCurrentExpressions(SkinnedMeshRenderer renderer) {
+        public void CancelCurrentExpressions() {
             foreach (ExpressionState expressionState in featureStates.Values) {
                 if (expressionState != null) {
                     CancelExpression(expressionState);
@@ -130,8 +134,9 @@ namespace MwSkinAdditions {
             StopCoroutine(expressionState.coroutine);
             featureActive[expressionState.animation.feature] = false;
             StartCoroutine(BlendToZero(expressionState));
-            if (expressionState.animation.blockBlinking) {
+            if (!expressionState.finished && expressionState.animation.blockBlinking) {
                 blinkStoppers -= 1;
+                expressionState.finished = true;
             }
         }
 
@@ -194,7 +199,7 @@ namespace MwSkinAdditions {
                     // if this was a double blink, toggle off and don't roll, else roll for one
                     if (doubleBlink) {
                         doubleBlink = false;
-                    } else if (Random.value <= 0.1f) {
+                    } else if (UnityEngine.Random.value <= 0.1f) {
                         doubleBlink = true;
                     }
 
@@ -208,7 +213,7 @@ namespace MwSkinAdditions {
                 if (doubleBlink) {
                     blinkInterval = 0.3f;
                 } else {
-                    blinkInterval = Random.Range(3f, 8f);
+                    blinkInterval = UnityEngine.Random.Range(3f, 8f);
                 }
             }
         }
@@ -224,7 +229,7 @@ namespace MwSkinAdditions {
                     } else if (idleAnimation.cancelOnConditionFalse) {
                         foreach (BlendShapeAnimation animation in idleAnimation.animations) {
                             ExpressionState currentExpressionState = GetFeatureState(animation.feature);
-                            if (currentExpressionState?.animation == animation) {
+                            if (GetFeatureActive(animation.feature) && currentExpressionState?.animation == animation) {
                                 CancelExpression(currentExpressionState);
                             }
                         }

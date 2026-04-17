@@ -52,6 +52,8 @@ namespace MwSkinAdditions {
         public static void SubscribeGlobalEvents() {
             EventSub.DifferentSkinAppliedGlobal += RemoveTransformController;
             EventSub.DifferentSkinAppliedGlobal += RemoveExtraObjects;
+            EventSub.DifferentSkinAppliedGlobal += RemoveVoiceController;
+            EventSub.DifferentSkinAppliedGlobal += RemoveExpressionController;
         }
 
         public static EventSub GetEventSubFromBody(GameObject body) {
@@ -328,6 +330,21 @@ namespace MwSkinAdditions {
             TransformController transformController = body?.GetComponent<TransformController>();
             if (transformController != null) {
                 UnityEngine.Object.Destroy(transformController);
+            }
+        }
+
+        public static void RemoveVoiceController(GameObject body) {
+            VoiceController voiceController = body?.GetComponent<VoiceController>();
+            if (voiceController != null) {
+                UnityEngine.Object.Destroy(voiceController);
+            }
+        }
+
+        public static void RemoveExpressionController(GameObject body) {
+            ExpressionController expressionController = body?.GetComponent<ExpressionController>();
+            if (expressionController != null) {
+                expressionController.CancelCurrentExpressions();
+                UnityEngine.Object.Destroy(expressionController);
             }
         }
 
