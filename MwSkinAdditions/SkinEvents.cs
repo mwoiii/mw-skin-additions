@@ -20,8 +20,8 @@ namespace MwSkinAdditions {
         public static HashSet<CharacterBody> holdOffIdleInvocation = new HashSet<CharacterBody>();
 
         public static void Init() {
-            SubscribeGameEvents();
             SubscribeGlobalEvents();
+            SubscribeGameEvents();
         }
 
         public static void SubscribeEventSkin(EventSub eventSkin) {
@@ -329,6 +329,7 @@ namespace MwSkinAdditions {
         public static void RemoveTransformController(GameObject body) {
             TransformController transformController = body?.GetComponent<TransformController>();
             if (transformController != null) {
+                transformController.beingDeleted = true;
                 UnityEngine.Object.Destroy(transformController);
             }
         }

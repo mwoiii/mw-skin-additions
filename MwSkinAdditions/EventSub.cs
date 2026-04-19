@@ -109,7 +109,7 @@ namespace MwSkinAdditions {
 
         private void AddTransformController(GameObject body) {
             TransformController transformController = body.GetComponent<TransformController>();
-            if (transformController == null) {
+            if (transformController == null || transformController.beingDeleted) {
                 transformController = body.AddComponent<TransformController>();
             }
             transformController.Init(this);

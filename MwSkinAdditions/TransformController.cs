@@ -8,6 +8,8 @@ namespace MwSkinAdditions {
 
         private Dictionary<Transform, Transform> boneRelativeTo = new Dictionary<Transform, Transform>();
 
+        public bool beingDeleted = false;
+
         #region RuntimeInspector stuff for easy testing
 
         public BoneTransformation[] boneTransformations;
@@ -47,15 +49,11 @@ namespace MwSkinAdditions {
 
         #endregion
 
-
         public void Init(EventSub eventSub) {
             boneTransformations = eventSub.boneTransformations;
             rtiBoneTransformation = boneTransformations[rtiIndex];
             _rtiPositionVector = rtiBoneTransformation.position;
             _rtiLocalScaleVector = rtiBoneTransformation.localScale;
-        }
-
-        private void Start() {
             AssignLimbs();
         }
 

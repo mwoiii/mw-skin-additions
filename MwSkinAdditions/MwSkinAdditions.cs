@@ -11,7 +11,7 @@ namespace MwSkinAdditions {
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "mwmw";
         public const string PluginName = "MwSkinAdditions";
-        public const string PluginVersion = "1.0.0";
+        public const string PluginVersion = "1.0.1";
         public static PluginInfo pluginInfo;
         public static MwSkinAdditions instance;
 
