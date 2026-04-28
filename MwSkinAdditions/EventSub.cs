@@ -19,6 +19,8 @@ namespace MwSkinAdditions {
 
         public VoiceGroup[] voiceGroups;
 
+        public bool transformInCSS = true;
+
 
         public static Action<GameObject> DifferentSkinAppliedGlobal;
 
@@ -70,9 +72,10 @@ namespace MwSkinAdditions {
 
         public Action<GameObject> HoldoutZoneCharged;
 
+        [Obsolete("Provide an EventSubOptions object instead.")]
         public EventSub(SkinDef skinDef, BoneTransformation[] boneTransformations = null, ExtraObject[] extraObjects = null,
-                        bool useAnimations = false, BlendShapeAnimation[] blinkAnimations = null, IdleAnimation[] conditionalIdleAnimations = null,
-                        VoiceGroup[] voiceGroups = null) {
+            bool useAnimations = false, BlendShapeAnimation[] blinkAnimations = null, IdleAnimation[] conditionalIdleAnimations = null,
+            VoiceGroup[] voiceGroups = null) {
             this.skinDef = skinDef;
             this.boneTransformations = boneTransformations;
             this.extraObjects = extraObjects;
@@ -80,6 +83,19 @@ namespace MwSkinAdditions {
             this.blinkAnimations = blinkAnimations;
             this.conditionalIdleAnimations = conditionalIdleAnimations;
             this.voiceGroups = voiceGroups;
+        }
+
+        public EventSub(SkinDef skinDef, EventSubOptions eventSubOptions) {
+            eventSubOptions ??= new EventSubOptions();
+
+            this.skinDef = skinDef;
+            boneTransformations = eventSubOptions.boneTransformations;
+            extraObjects = eventSubOptions.extraObjects;
+            useAnimations = eventSubOptions.useAnimations;
+            blinkAnimations = eventSubOptions.blinkAnimations;
+            conditionalIdleAnimations = eventSubOptions.conditionalIdleAnimations;
+            voiceGroups = eventSubOptions.voiceGroups;
+            transformInCSS = eventSubOptions.transformInCSS;
         }
 
         public void Init() {
@@ -108,6 +124,10 @@ namespace MwSkinAdditions {
         }
 
         private void AddTransformController(GameObject body) {
+            if (Run.instance == null && !transformInCSS) {
+                return;
+            }
+
             TransformController transformController = body.GetComponent<TransformController>();
             if (transformController == null || transformController.beingDeleted) {
                 transformController = body.AddComponent<TransformController>();

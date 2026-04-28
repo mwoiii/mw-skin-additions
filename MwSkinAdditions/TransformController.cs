@@ -1,3 +1,4 @@
+using RoR2;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,6 +8,8 @@ namespace MwSkinAdditions {
         private Transform[] boneTransforms;
 
         private Dictionary<Transform, Transform> boneRelativeTo = new Dictionary<Transform, Transform>();
+
+        private CharacterBody characterBody;
 
         public bool beingDeleted = false;
 
@@ -57,6 +60,10 @@ namespace MwSkinAdditions {
             AssignLimbs();
         }
 
+        private void Start() {
+            characterBody = GetComponent<CharacterBody>();
+        }
+
         private void AssignLimbs() {
             List<Transform> tempBoneTransforms = new List<Transform>();
 
@@ -84,8 +91,10 @@ namespace MwSkinAdditions {
         }
 
         private void LateUpdate() {
-            ApplyScale();
-            ApplyPosition();
+            if (!characterBody || !characterBody.currentVehicle) {
+                ApplyScale();
+                ApplyPosition();
+            }
         }
 
         private void ApplyScale() {

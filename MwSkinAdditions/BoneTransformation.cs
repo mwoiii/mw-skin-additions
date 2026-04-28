@@ -11,10 +11,10 @@ namespace MwSkinAdditions {
 
         public string relativeBonePath;
 
-        public BoneTransformation(string armaturePath, Vector3 localScale, Vector3 localPosition, string relativeBonePath = null) {
+        public BoneTransformation(string armaturePath, Vector3 localScale, Vector3 position, string relativeBonePath = null) {
             this.armaturePath = armaturePath;
             this.localScale = localScale;
-            this.position = localPosition;
+            this.position = position;
             this.relativeBonePath = relativeBonePath;
         }
     }
