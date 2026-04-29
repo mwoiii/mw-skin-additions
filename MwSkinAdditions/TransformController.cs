@@ -11,6 +11,8 @@ namespace MwSkinAdditions {
 
         private CharacterBody characterBody;
 
+        private Animator animator;
+
         public bool beingDeleted = false;
 
         #region RuntimeInspector stuff for easy testing
@@ -62,6 +64,7 @@ namespace MwSkinAdditions {
 
         private void Start() {
             characterBody = GetComponent<CharacterBody>();
+            animator = SkinEvents.GetModelFromEventBody(gameObject).GetComponent<Animator>();
         }
 
         private void AssignLimbs() {
@@ -91,10 +94,11 @@ namespace MwSkinAdditions {
         }
 
         private void LateUpdate() {
-            if (!characterBody || !characterBody.currentVehicle) {
-                ApplyScale();
+            if (!characterBody?.currentVehicle == true && animator?.enabled == true) {
                 ApplyPosition();
             }
+
+            ApplyScale();
         }
 
         private void ApplyScale() {

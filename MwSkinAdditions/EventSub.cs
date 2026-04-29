@@ -120,7 +120,6 @@ namespace MwSkinAdditions {
         private void SubscribeTransformEvents() {
             SkinAppliedRun += AddTransformController;
             SkinAppliedLobby += AddTransformController;
-            Death += DisableTransformController;
         }
 
         private void AddTransformController(GameObject body) {
@@ -133,13 +132,6 @@ namespace MwSkinAdditions {
                 transformController = body.AddComponent<TransformController>();
             }
             transformController.Init(this);
-        }
-
-        public void DisableTransformController(GameObject body) {
-            TransformController transformController = body?.GetComponent<TransformController>();
-            if (transformController != null) {
-                transformController.enabled = false;
-            }
         }
 
         private void SubscribeExtraObjectEvents() {

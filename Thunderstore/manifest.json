@@ -1,0 +1,11 @@
+﻿{
+	"name": "MwSkinAdditions",
+	"version_number": "1.0.3",
+	"website_url": "https://github.com/mwoiii/mw-skin-additions",
+	"description": "A library for skin mods that enables easy addition of complex behaviours for more intricate skins.",
+	"dependencies": [
+		"bbepis-BepInExPack-5.4.2108",
+		"RiskofThunder-HookGenPatcher-1.2.3",
+		"RiskofThunder-R2API_Networking-1.0.2"
+	]
+}
