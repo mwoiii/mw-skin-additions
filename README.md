@@ -1,5 +1,4 @@
 MwSkinAdditions
 ==========
 
-### About
-Mr Miyagi Skins!!!!
+Read the [Wiki](https://github.com/mwoiii/mw-skin-additions/wiki) to get started!
