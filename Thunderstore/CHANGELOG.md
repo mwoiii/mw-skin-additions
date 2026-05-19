@@ -1,3 +1,7 @@
+## 1.0.4
+
+- A single instance of an EventSub is no longer limited to a single SkinDef and can now take an array of SkinDefs
+
 ## 1.0.3
 
 - Fixed transformed limbs from drifting away when frozen

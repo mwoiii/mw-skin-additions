@@ -24,8 +24,14 @@ namespace MwSkinAdditions {
             SubscribeGameEvents();
         }
 
-        public static void SubscribeEventSkin(EventSub eventSkin) {
-            skinDefToEventSub.Add(eventSkin.skinDef, eventSkin);
+        public static void SubscribeEventSkins(EventSub eventSub) {
+            foreach (SkinDef skinDef in eventSub.skinDefs) {
+                if (skinDef == null) {
+                    Log.Error("Received a null SkinDef! Ignoring...");
+                    continue;
+                }
+                skinDefToEventSub.Add(skinDef, eventSub);
+            }
         }
 
         private static void SubscribeGameEvents() {

@@ -5,7 +5,7 @@ using UnityEngine;
 namespace MwSkinAdditions {
     public class EventSub {
 
-        public SkinDef skinDef;
+        public SkinDef[] skinDefs;
 
         public BoneTransformation[] boneTransformations;
 
@@ -76,7 +76,7 @@ namespace MwSkinAdditions {
         public EventSub(SkinDef skinDef, BoneTransformation[] boneTransformations = null, ExtraObject[] extraObjects = null,
             bool useAnimations = false, BlendShapeAnimation[] blinkAnimations = null, IdleAnimation[] conditionalIdleAnimations = null,
             VoiceGroup[] voiceGroups = null) {
-            this.skinDef = skinDef;
+            this.skinDefs = new SkinDef[] { skinDef };
             this.boneTransformations = boneTransformations;
             this.extraObjects = extraObjects;
             this.useAnimations = useAnimations;
@@ -88,7 +88,18 @@ namespace MwSkinAdditions {
         public EventSub(SkinDef skinDef, EventSubOptions eventSubOptions) {
             eventSubOptions ??= new EventSubOptions();
 
-            this.skinDef = skinDef;
+            skinDefs = new SkinDef[] { skinDef };
+            UnpackOptions(eventSubOptions);
+        }
+
+        public EventSub(SkinDef[] skinDefs, EventSubOptions eventSubOptions) {
+            eventSubOptions ??= new EventSubOptions();
+
+            this.skinDefs = skinDefs;
+            UnpackOptions(eventSubOptions);
+        }
+
+        private void UnpackOptions(EventSubOptions eventSubOptions) {
             boneTransformations = eventSubOptions.boneTransformations;
             extraObjects = eventSubOptions.extraObjects;
             useAnimations = eventSubOptions.useAnimations;
@@ -99,7 +110,7 @@ namespace MwSkinAdditions {
         }
 
         public void Init() {
-            SkinEvents.SubscribeEventSkin(this);
+            SkinEvents.SubscribeEventSkins(this);
             if (boneTransformations != null) {
                 SubscribeTransformEvents();
             }
@@ -115,6 +126,35 @@ namespace MwSkinAdditions {
             if (voiceGroups != null) {
                 SubscribeVoiceEvents();
             }
+
+            # region Debug
+            /*
+            SkinAppliedLobby += (GameObject _) => { Log.Debug("SkinAppliedLobby event invoked!"); };
+            SkinAppliedRun += (GameObject _) => { Log.Debug("SkinAppliedRun event invoked!"); };
+            TakeDamage += (GameObject _, DamageReport _) => { Log.Debug("TakeDamage event invoked!"); };
+            Death += (GameObject _) => { Log.Debug("Death event invoked!"); };
+            DefeatBossGroup += (GameObject _) => { Log.Debug("DefeatBossGroup event invoked!"); };
+            LeavePod += (GameObject _) => { Log.Debug("LeavePod event invoked!"); };
+            UsePrimary += (GameObject _) => { Log.Debug("UsePrimary event invoked!"); };
+            UseSecondary += (GameObject _) => { Log.Debug("UseSecondary event invoked!"); };
+            UseUtility += (GameObject _) => { Log.Debug("UseUtility event invoked!"); };
+            UseSpecial += (GameObject _) => { Log.Debug("UseSpecial event invoked!"); };
+            ShrineSuccess += (GameObject _) => { Log.Debug("ShrineSuccess event invoked!"); };
+            ShrineFailure += (GameObject _) => { Log.Debug("ShrineFailure event invoked!"); };
+            TeleporterStart += (GameObject _) => { Log.Debug("TeleporterStart event invoked!"); };
+            TeleporterEnd += (GameObject _) => { Log.Debug("TeleporterEnd event invoked!"); };
+            BearDamageBlock += (GameObject _) => { Log.Debug("BearDamageBlock event invoked!"); };
+            LevelUp += (GameObject _) => { Log.Debug("LevelUp event invoked!"); };
+            MithrixDefeat += (GameObject _) => { Log.Debug("MithrixDefeat event invoked!"); };
+            UseEquipment += (GameObject _) => { Log.Debug("UseEquipment event invoked!"); };
+            Heal += (GameObject _, float _) => { Log.Debug("Heal event invoked!"); };
+            Jump += (GameObject _) => { Log.Debug("Jump event invoked!"); };
+            LeaveStage += (GameObject _) => { Log.Debug("LeaveStage event invoked!"); };
+            Idle += (GameObject _) => { Log.Debug("Idle event invoked!"); };
+            GetItem += (GameObject _, ItemIndex _) => { Log.Debug("GetItem event invoked!"); };
+            HoldoutZoneCharged += (GameObject _) => { Log.Debug("HoldoutZoneCharged event invoked!"); };
+            */
+            #endregion
         }
 
         private void SubscribeTransformEvents() {
