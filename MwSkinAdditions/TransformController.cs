@@ -94,6 +94,11 @@ namespace MwSkinAdditions {
         }
 
         private void LateUpdate() {
+            // void death
+            if (characterBody && !characterBody.modelLocator.modelTransform) {
+                return;
+            }
+
             if (!characterBody?.currentVehicle == true && animator?.enabled == true) {
                 ApplyPosition();
             }
@@ -109,6 +114,9 @@ namespace MwSkinAdditions {
 
         private void ApplyPosition() {
             for (int i = 0; i < boneTransforms.Length; i++) {
+                if (Stage.instance == null && !boneTransformations[i].applyInLobby) {
+                    continue;
+                }
                 Transform relativeBone = boneRelativeTo[boneTransforms[i]];
                 boneTransforms[i].position = relativeBone.TransformPoint(boneTransformations[i].position);
             }

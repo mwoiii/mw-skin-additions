@@ -56,5 +56,11 @@ namespace MwSkinAdditions {
             }
             action?.Invoke();
         }
+
+        public static void SafeSetBlendShapeWeight(this SkinnedMeshRenderer renderer, int index, float value) {
+            if (renderer) {
+                renderer?.SetBlendShapeWeight(index, value);
+            }
+        }
     }
 }

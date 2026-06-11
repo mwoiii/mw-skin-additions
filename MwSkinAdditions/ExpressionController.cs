@@ -46,7 +46,7 @@ namespace MwSkinAdditions {
         }
         public void Init(EventSub eventSub) {
             this.eventSub = eventSub;
-            eventSub.Death += (GameObject _) => { inDeathState = true; };
+            eventSub.Death += (GameObject body) => { inDeathState = true; };
         }
 
         public void TryPlayAnimation(BlendShapeAnimation animation) {
@@ -71,7 +71,7 @@ namespace MwSkinAdditions {
             ExpressionState currentExpressionState = GetFeatureState(animation.feature);
 
             if (currentExpressionState != null && animation.priority > currentExpressionState.animation.priority) {
-                CancelExpression(currentExpressionState);
+                CancelExpressionSmooth(currentExpressionState);
             }
 
             if (GetFeatureActive(animation.feature) == false) {
@@ -98,28 +98,36 @@ namespace MwSkinAdditions {
 
             while (stopwatch < animation.fadeInDuration) {
                 stopwatch += Time.deltaTime;
-                renderer.SetBlendShapeWeight(index, Mathf.Lerp(0f, 100f, stopwatch / animation.fadeInDuration));
+                renderer?.SafeSetBlendShapeWeight(index, Mathf.Lerp(0f, 100f, stopwatch / animation.fadeInDuration));
                 yield return null;
             }
 
-            renderer.SetBlendShapeWeight(index, 100f);
+            renderer?.SafeSetBlendShapeWeight(index, 100f);
 
             yield return new WaitForSeconds(animation.holdDuration);
             stopwatch = 0;
 
             while (stopwatch < animation.fadeOutDuration) {
                 stopwatch += Time.deltaTime;
-                renderer.SetBlendShapeWeight(index, Mathf.Lerp(100f, 0f, stopwatch / animation.fadeOutDuration));
+                renderer?.SafeSetBlendShapeWeight(index, Mathf.Lerp(100f, 0f, stopwatch / animation.fadeOutDuration));
                 yield return null;
             }
 
-            renderer.SetBlendShapeWeight(index, 0f);
+            renderer?.SafeSetBlendShapeWeight(index, 0f);
             featureActive[animation.feature] = false;
             if (animation.blockBlinking) {
                 blinkStoppers -= 1;
             }
 
             expressionState.finished = true;
+        }
+
+        public void CancelCurrentExpressionsSmooth() {
+            foreach (ExpressionState expressionState in featureStates.Values) {
+                if (expressionState != null) {
+                    CancelExpressionSmooth(expressionState);
+                }
+            }
         }
 
         public void CancelCurrentExpressions() {
@@ -130,10 +138,14 @@ namespace MwSkinAdditions {
             }
         }
 
+        private void CancelExpressionSmooth(ExpressionState expressionState) {
+            CancelExpression(expressionState);
+            StartCoroutine(BlendToZero(expressionState));
+        }
+
         private void CancelExpression(ExpressionState expressionState) {
             StopCoroutine(expressionState.coroutine);
             featureActive[expressionState.animation.feature] = false;
-            StartCoroutine(BlendToZero(expressionState));
             if (!expressionState.finished && expressionState.animation.blockBlinking) {
                 blinkStoppers -= 1;
                 expressionState.finished = true;
@@ -142,13 +154,14 @@ namespace MwSkinAdditions {
 
         private IEnumerator BlendToZero(ExpressionState expressionState) {
             int index = GetBlendShapeIndex(expressionState.animation, expressionState.skinnedMeshRenderer);
+
             float startWeight = expressionState.skinnedMeshRenderer.GetBlendShapeWeight(index);
 
             float stopwatch = 0f;
 
             while (stopwatch < expressionState.animation.fadeOutDuration) {
                 stopwatch += Time.deltaTime;
-                expressionState.skinnedMeshRenderer.SetBlendShapeWeight(index, Mathf.Lerp(startWeight, 0f, stopwatch / expressionState.animation.fadeOutDuration));
+                expressionState.skinnedMeshRenderer?.SafeSetBlendShapeWeight(index, Mathf.Lerp(startWeight, 0f, stopwatch / expressionState.animation.fadeOutDuration));
                 yield return null;
             }
         }
@@ -230,7 +243,7 @@ namespace MwSkinAdditions {
                         foreach (BlendShapeAnimation animation in idleAnimation.animations) {
                             ExpressionState currentExpressionState = GetFeatureState(animation.feature);
                             if (GetFeatureActive(animation.feature) && currentExpressionState?.animation == animation) {
-                                CancelExpression(currentExpressionState);
+                                CancelExpressionSmooth(currentExpressionState);
                             }
                         }
                     }

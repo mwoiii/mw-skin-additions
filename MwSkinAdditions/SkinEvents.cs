@@ -245,7 +245,7 @@ namespace MwSkinAdditions {
         }
 
         private static void OnTakeDamage(DamageReport damageReport) {
-            if (damageReport?.victimBody != null) {
+            if (damageReport?.victimBody != null && damageReport.victimBody.healthComponent.health > 0) {
                 if (GetEventSubFromBody(damageReport?.victimBody?.gameObject) is EventSub eventSub) {
                     eventSub.TakeDamage?.Invoke(damageReport?.victimBody?.gameObject, damageReport);
                 }
@@ -309,7 +309,7 @@ namespace MwSkinAdditions {
         /// <param name="body"></param>
         /// <returns></returns>
         public static GameObject GetModelFromEventBody(GameObject body) {
-            if (Run.instance != null && body) {
+            if (Stage.instance != null && body) {
                 return body.GetComponent<ModelLocator>()?.modelTransform?.gameObject;
             } else {
                 return body;
