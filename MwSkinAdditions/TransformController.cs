@@ -99,7 +99,7 @@ namespace MwSkinAdditions {
                 return;
             }
 
-            if (!characterBody?.currentVehicle == true && animator?.enabled == true) {
+            if (characterBody && !characterBody.currentVehicle && animator && animator.enabled) {
                 ApplyPosition();
             }
 

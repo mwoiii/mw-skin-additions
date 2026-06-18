@@ -1,4 +1,5 @@
 using BepInEx;
+using MwSkinAdditions.Networking;
 using R2API.Networking;
 
 namespace MwSkinAdditions {
@@ -11,7 +12,7 @@ namespace MwSkinAdditions {
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "mwmw";
         public const string PluginName = "MwSkinAdditions";
-        public const string PluginVersion = "1.0.6";
+        public const string PluginVersion = "1.0.7";
         public static PluginInfo pluginInfo;
         public static MwSkinAdditions instance;
 
@@ -19,9 +20,8 @@ namespace MwSkinAdditions {
             instance = this;
             pluginInfo = Info;
             Log.Init(Logger);
-
+            NetworkMessages.Init();
             SkinEvents.Init();
-
             RoR2.RoR2Application.onStart += () => { new ContentPacks().Initialize(); };
         }
     }

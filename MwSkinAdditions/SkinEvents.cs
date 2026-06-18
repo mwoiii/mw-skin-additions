@@ -2,6 +2,7 @@ using EntityStates.Missions.BrotherEncounter;
 using HG;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using MwSkinAdditions.Networking;
 using R2API.Networking;
 using R2API.Networking.Interfaces;
 using RoR2;
@@ -10,7 +11,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace MwSkinAdditions {
     public static class SkinEvents {
@@ -80,31 +80,42 @@ namespace MwSkinAdditions {
             return skinDefToEventSub[skinDef];
         }
 
+        private static void ForEachBodySafe(Action<GameObject> action) {
+            foreach (CharacterMaster master in CharacterMaster.readOnlyInstancesList) {
+                if (!master) {
+                    continue;
+                }
+                GameObject bodyObject = master.GetBodyObject();
+                if (bodyObject) {
+                    action(bodyObject);
+                }
+            }
+        }
+
         private static IEnumerator OnSkinAppliedBody(On.RoR2.ModelSkinController.orig_ApplySkinAsync orig, ModelSkinController self, int skinIndex, AsyncReferenceHandleUnloadType unloadType) {
             yield return orig(self, skinIndex, unloadType);
 
-            GameObject bodyObject = self?.characterModel?.body?.gameObject;
-            EventSub bodyEventSub = null;
-            if (bodyObject != null) {
-                bodyEventSub = GetEventSubFromBody(bodyObject);
+            if (!self || !self.characterModel || !self.characterModel.body) {
+                yield break;
             }
 
-            if (bodyObject != null && bodyEventSub != null) {
+            GameObject bodyObject = self.characterModel.body.gameObject;
+            EventSub bodyEventSub = GetEventSubFromBody(bodyObject);
+
+            if (bodyEventSub != null) {
                 bodyEventSub.SkinAppliedRun?.Invoke(bodyObject);
-            } else if (bodyObject == null && ArrayUtils.GetSafe(self.skins, self.currentSkinIndex) is SkinDef skinDef && skinDefToEventSub.ContainsKey(skinDef)) {
+            } else if (ArrayUtils.GetSafe(self.skins, self.currentSkinIndex) is SkinDef skinDef && skinDefToEventSub.ContainsKey(skinDef)) {
                 bodyEventSub = GetEventSubFromSkinDef(skinDef);
                 bodyEventSub.SkinAppliedLobby?.Invoke(self.gameObject);
-            } else if (bodyObject != null) {
-                EventSub.DifferentSkinAppliedGlobal?.Invoke(bodyObject);
             } else {
-                EventSub.DifferentSkinAppliedGlobal?.Invoke(self.gameObject);
+                EventSub.DifferentSkinAppliedGlobal?.Invoke(bodyObject);
             }
         }
 
         private static void OnTeleporterStart(On.RoR2.TeleporterInteraction.orig_OnInteractionBegin orig, TeleporterInteraction self, Interactor activator) {
             orig(self, activator);
 
-            if (TeleporterInteraction.instance?.isCharged == false) {
+            if (TeleporterInteraction.instance && !TeleporterInteraction.instance.isCharged) {
                 if (GetEventSubFromBody(activator.gameObject) is EventSub eventSub) {
                     eventSub.TeleporterStart?.Invoke(activator.gameObject);
                 }
@@ -191,10 +202,8 @@ namespace MwSkinAdditions {
         }
 
         private static void OnLevelUp(CharacterBody characterBody) {
-            GameObject body = characterBody?.gameObject;
-
-            if (GetEventSubFromBody(body) is EventSub eventSub) {
-                eventSub.LevelUp?.Invoke(body);
+            if (characterBody && GetEventSubFromBody(characterBody.gameObject) is EventSub eventSub) {
+                eventSub.LevelUp?.Invoke(characterBody.gameObject);
             }
         }
 
@@ -222,47 +231,37 @@ namespace MwSkinAdditions {
 
         private static void OnDefeatBossGroup(BossGroup bossGroup) {
             if (bossGroup.gameObject.name != "BrotherEncounter, Phase 4") {
-                foreach (CharacterMaster master in CharacterMaster.readOnlyInstancesList) {
-                    GameObject bodyObject = master?.GetBodyObject();
-                    if (bodyObject != null) {
-                        if (GetEventSubFromBody(bodyObject) is EventSub eventSub) {
-                            eventSub.DefeatBossGroup?.Invoke(bodyObject);
-                        }
+                ForEachBodySafe((GameObject bodyObject) => {
+                    if (GetEventSubFromBody(bodyObject) is EventSub eventSub) {
+                        eventSub.DefeatBossGroup?.Invoke(bodyObject);
                     }
-                }
+                });
             }
         }
 
         private static void OnTeleporterEnd(TeleporterInteraction teleporterInteraction) {
-            foreach (CharacterMaster master in CharacterMaster.readOnlyInstancesList) {
-                GameObject bodyObject = master?.GetBodyObject();
-                if (bodyObject != null) {
-                    if (GetEventSubFromBody(bodyObject) is EventSub eventSub) {
-                        eventSub.TeleporterEnd?.Invoke(bodyObject);
-                    }
+            ForEachBodySafe((GameObject bodyObject) => {
+                if (GetEventSubFromBody(bodyObject) is EventSub eventSub) {
+                    eventSub.TeleporterEnd?.Invoke(bodyObject);
                 }
-            }
+            });
         }
 
         private static void OnTakeDamage(DamageReport damageReport) {
-            if (damageReport?.victimBody != null && damageReport.victimBody.healthComponent.health > 0) {
-                if (GetEventSubFromBody(damageReport?.victimBody?.gameObject) is EventSub eventSub) {
-                    eventSub.TakeDamage?.Invoke(damageReport?.victimBody?.gameObject, damageReport);
+            if (damageReport.victimBody && damageReport.victimBody.healthComponent && damageReport.victimBody.healthComponent.health > 0) {
+                if (GetEventSubFromBody(damageReport.victimBody.gameObject) is EventSub eventSub) {
+                    eventSub.TakeDamage?.Invoke(damageReport.victimBody.gameObject, damageReport);
                 }
             }
         }
 
         private static void OnMithrixDefeat(On.EntityStates.Missions.BrotherEncounter.EncounterFinished.orig_OnEnter orig, EncounterFinished self) {
             orig(self);
-
-            foreach (CharacterMaster master in CharacterMaster.readOnlyInstancesList) {
-                GameObject bodyObject = master?.GetBodyObject();
-                if (bodyObject != null) {
-                    if (GetEventSubFromBody(bodyObject) is EventSub eventSub) {
-                        eventSub.MithrixDefeat?.Invoke(bodyObject);
-                    }
+            ForEachBodySafe((GameObject bodyObject) => {
+                if (GetEventSubFromBody(bodyObject) is EventSub eventSub) {
+                    eventSub.MithrixDefeat?.Invoke(bodyObject);
                 }
-            }
+            });
         }
 
         private static void OnUseEquipment(EquipmentSlot self, EquipmentIndex index) {
@@ -271,11 +270,9 @@ namespace MwSkinAdditions {
             }
         }
 
-        private static void OnHeal(HealthComponent self, float amount, ProcChainMask procChainMaskn) {
-            GameObject body = self?.body?.gameObject;
-
-            if (GetEventSubFromBody(body) is EventSub eventSub) {
-                eventSub.Heal?.Invoke(body, amount);
+        private static void OnHeal(HealthComponent self, float amount, ProcChainMask procChainMask) {
+            if (self && self.body && GetEventSubFromBody(self.body.gameObject) is EventSub eventSub) {
+                eventSub.Heal?.Invoke(self.body.gameObject, amount);
             }
         }
 
@@ -289,15 +286,11 @@ namespace MwSkinAdditions {
 
         private static void OnLeaveStage(On.RoR2.SceneExitController.orig_Begin orig, SceneExitController self) {
             orig(self);
-
-            foreach (CharacterMaster master in CharacterMaster.readOnlyInstancesList) {
-                GameObject bodyObject = master?.GetBodyObject();
-                if (bodyObject != null) {
-                    if (GetEventSubFromBody(bodyObject) is EventSub eventSub) {
-                        eventSub.LeaveStage?.Invoke(bodyObject);
-                    }
+            ForEachBodySafe((GameObject bodyObject) => {
+                if (GetEventSubFromBody(bodyObject) is EventSub eventSub) {
+                    eventSub.LeaveStage?.Invoke(bodyObject);
                 }
-            }
+            });
         }
 
         /// <summary>
@@ -309,15 +302,19 @@ namespace MwSkinAdditions {
         /// <param name="body"></param>
         /// <returns></returns>
         public static GameObject GetModelFromEventBody(GameObject body) {
-            if (Stage.instance != null && body) {
-                return body.GetComponent<ModelLocator>()?.modelTransform?.gameObject;
+            if (Stage.instance && body && body.TryGetComponent(out ModelLocator modelLocator) && modelLocator.modelTransform) {
+                return modelLocator.modelTransform.gameObject;
             } else {
                 return body;
             }
         }
 
         public static ExpressionController GetExpressionController(GameObject body) {
-            return GetModelFromEventBody(body)?.GetComponent<ExpressionController>();
+            GameObject model = GetModelFromEventBody(body);
+            if (model) {
+                return model.GetComponent<ExpressionController>();
+            }
+            return null;
         }
 
         public static void RemoveExtraObjects(GameObject body) {
@@ -333,23 +330,20 @@ namespace MwSkinAdditions {
         }
 
         public static void RemoveTransformController(GameObject body) {
-            TransformController transformController = body?.GetComponent<TransformController>();
-            if (transformController != null) {
+            if (body && body.TryGetComponent(out TransformController transformController)) {
                 transformController.beingDeleted = true;
                 UnityEngine.Object.Destroy(transformController);
             }
         }
 
         public static void RemoveVoiceController(GameObject body) {
-            VoiceController voiceController = body?.GetComponent<VoiceController>();
-            if (voiceController != null) {
+            if (body && body.TryGetComponent(out VoiceController voiceController)) {
                 UnityEngine.Object.Destroy(voiceController);
             }
         }
 
         public static void RemoveExpressionController(GameObject body) {
-            ExpressionController expressionController = body?.GetComponent<ExpressionController>();
-            if (expressionController != null) {
+            if (body && body.TryGetComponent(out ExpressionController expressionController)) {
                 expressionController.CancelCurrentExpressions();
                 UnityEngine.Object.Destroy(expressionController);
             }
@@ -391,89 +385,11 @@ namespace MwSkinAdditions {
         }
 
         public static void InvokeHoldoutZoneCharged() {
-            foreach (CharacterMaster master in CharacterMaster.readOnlyInstancesList) {
-                GameObject bodyObject = master?.GetBodyObject();
-                if (bodyObject != null) {
-                    if (GetEventSubFromBody(bodyObject) is EventSub eventSub) {
-                        eventSub.HoldoutZoneCharged?.Invoke(bodyObject);
-                    }
+            ForEachBodySafe((GameObject bodyObject) => {
+                if (GetEventSubFromBody(bodyObject) is EventSub eventSub) {
+                    eventSub.HoldoutZoneCharged?.Invoke(bodyObject);
                 }
-            }
-        }
-
-        public class SyncGetItem : INetMessage {
-
-            NetworkInstanceId netInstanceId;
-            int itemIndex;
-
-            public SyncGetItem() {
-            }
-
-            public SyncGetItem(NetworkInstanceId netInstanceId, int itemIndex) {
-                this.netInstanceId = netInstanceId;
-                this.itemIndex = itemIndex;
-            }
-
-            public void Serialize(NetworkWriter writer) {
-                writer.Write(netInstanceId);
-                writer.Write(itemIndex);
-            }
-
-            public void Deserialize(NetworkReader reader) {
-                netInstanceId = reader.ReadNetworkId();
-                itemIndex = reader.ReadInt32();
-            }
-
-            public void OnReceived() {
-                GameObject body = Util.FindNetworkObject(netInstanceId);
-                if (body != null) {
-                    InvokeGetItem(body, itemIndex);
-                }
-            }
-        }
-
-        public class SyncUseShrine : INetMessage {
-
-            NetworkInstanceId netInstanceId;
-            bool success;
-
-            public SyncUseShrine() {
-            }
-
-            public SyncUseShrine(NetworkInstanceId netInstanceId, bool success) {
-                this.netInstanceId = netInstanceId;
-                this.success = success;
-            }
-
-            public void Serialize(NetworkWriter writer) {
-                writer.Write(netInstanceId);
-                writer.Write(success);
-            }
-
-            public void Deserialize(NetworkReader reader) {
-                netInstanceId = reader.ReadNetworkId();
-                success = reader.ReadBoolean();
-            }
-
-            public void OnReceived() {
-                GameObject body = Util.FindNetworkObject(netInstanceId);
-                if (body != null) {
-                    InvokeUseShrine(body, success);
-                }
-            }
-        }
-
-        public class SyncHoldoutZoneCharged : INetMessage {
-
-            public void Serialize(NetworkWriter writer) {
-            }
-
-            public void Deserialize(NetworkReader reader) {
-            }
-
-            public void OnReceived() {
-                InvokeHoldoutZoneCharged();
-            }
+            });
         }
     }
 }

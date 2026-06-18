@@ -62,7 +62,14 @@ namespace MwSkinAdditions {
                 return cachedRenderer;
             }
 
-            SkinnedMeshRenderer renderer = SkinEvents.GetModelFromEventBody(gameObject)?.transform.Find(meshName)?.GetComponent<SkinnedMeshRenderer>();
+            SkinnedMeshRenderer renderer = null;
+            GameObject model = SkinEvents.GetModelFromEventBody(gameObject);
+            if (model) {
+                Transform mesh = transform.Find(meshName);
+                if (mesh) {
+                    renderer = mesh.GetComponent<SkinnedMeshRenderer>();
+                }
+            }
             cachedRenderers[meshName] = renderer;
             return renderer;
         }
@@ -98,22 +105,22 @@ namespace MwSkinAdditions {
 
             while (stopwatch < animation.fadeInDuration) {
                 stopwatch += Time.deltaTime;
-                renderer?.SafeSetBlendShapeWeight(index, Mathf.Lerp(0f, 100f, stopwatch / animation.fadeInDuration));
+                renderer.SafeSetBlendShapeWeight(index, Mathf.Lerp(0f, 100f, stopwatch / animation.fadeInDuration));
                 yield return null;
             }
 
-            renderer?.SafeSetBlendShapeWeight(index, 100f);
+            renderer.SafeSetBlendShapeWeight(index, 100f);
 
             yield return new WaitForSeconds(animation.holdDuration);
             stopwatch = 0;
 
             while (stopwatch < animation.fadeOutDuration) {
                 stopwatch += Time.deltaTime;
-                renderer?.SafeSetBlendShapeWeight(index, Mathf.Lerp(100f, 0f, stopwatch / animation.fadeOutDuration));
+                renderer.SafeSetBlendShapeWeight(index, Mathf.Lerp(100f, 0f, stopwatch / animation.fadeOutDuration));
                 yield return null;
             }
 
-            renderer?.SafeSetBlendShapeWeight(index, 0f);
+            renderer.SafeSetBlendShapeWeight(index, 0f);
             featureActive[animation.feature] = false;
             if (animation.blockBlinking) {
                 blinkStoppers -= 1;
@@ -161,7 +168,7 @@ namespace MwSkinAdditions {
 
             while (stopwatch < expressionState.animation.fadeOutDuration) {
                 stopwatch += Time.deltaTime;
-                expressionState.skinnedMeshRenderer?.SafeSetBlendShapeWeight(index, Mathf.Lerp(startWeight, 0f, stopwatch / expressionState.animation.fadeOutDuration));
+                expressionState.skinnedMeshRenderer.SafeSetBlendShapeWeight(index, Mathf.Lerp(startWeight, 0f, stopwatch / expressionState.animation.fadeOutDuration));
                 yield return null;
             }
         }
