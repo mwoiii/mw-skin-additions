@@ -1,3 +1,12 @@
+## 1.0.8
+
+- Fixed skin applied lobby event not being called 
+
+## 1.0.7
+
+- Made codebase more protected against NREs
+- Fixed network messages not being registered
+
 ## 1.0.6
 
 - Fixed NREs from situations where the body is deleted prematurely (e.g. void explosion deaths)

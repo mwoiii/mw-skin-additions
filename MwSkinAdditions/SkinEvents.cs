@@ -95,20 +95,26 @@ namespace MwSkinAdditions {
         private static IEnumerator OnSkinAppliedBody(On.RoR2.ModelSkinController.orig_ApplySkinAsync orig, ModelSkinController self, int skinIndex, AsyncReferenceHandleUnloadType unloadType) {
             yield return orig(self, skinIndex, unloadType);
 
-            if (!self || !self.characterModel || !self.characterModel.body) {
-                yield break;
+            GameObject bodyObject = null;
+            EventSub bodyEventSub = null;
+
+            if (self && self.characterModel & self.characterModel.body) {
+                bodyObject = self.characterModel.body.gameObject;
             }
 
-            GameObject bodyObject = self.characterModel.body.gameObject;
-            EventSub bodyEventSub = GetEventSubFromBody(bodyObject);
+            if (bodyObject) {
+                bodyEventSub = GetEventSubFromBody(bodyObject);
+            }
 
-            if (bodyEventSub != null) {
+            if (bodyObject && bodyEventSub != null) {
                 bodyEventSub.SkinAppliedRun?.Invoke(bodyObject);
-            } else if (ArrayUtils.GetSafe(self.skins, self.currentSkinIndex) is SkinDef skinDef && skinDefToEventSub.ContainsKey(skinDef)) {
+            } else if (!bodyObject && ArrayUtils.GetSafe(self.skins, self.currentSkinIndex) is SkinDef skinDef && skinDefToEventSub.ContainsKey(skinDef)) {
                 bodyEventSub = GetEventSubFromSkinDef(skinDef);
                 bodyEventSub.SkinAppliedLobby?.Invoke(self.gameObject);
-            } else {
+            } else if (!bodyObject) {
                 EventSub.DifferentSkinAppliedGlobal?.Invoke(bodyObject);
+            } else {
+                EventSub.DifferentSkinAppliedGlobal?.Invoke(self.gameObject);
             }
         }
 
@@ -318,9 +324,7 @@ namespace MwSkinAdditions {
         }
 
         public static void RemoveExtraObjects(GameObject body) {
-            ExtraObjectController extraObjectController = body.GetComponent<ExtraObjectController>();
-
-            if (extraObjectController != null) {
+            if (body && body.TryGetComponent(out ExtraObjectController extraObjectController)) {
                 foreach (GameObject obj in extraObjectController.extraObjs) {
                     UnityEngine.Object.Destroy(obj);
                 }
