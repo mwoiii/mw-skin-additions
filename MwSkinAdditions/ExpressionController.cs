@@ -52,7 +52,7 @@ namespace MwSkinAdditions {
         public void TryPlayAnimation(BlendShapeAnimation animation) {
             SkinnedMeshRenderer renderer = GetSkinnedMeshRenderer(animation.meshName);
 
-            if (renderer != null) {
+            if (renderer) {
                 TrySetExpressionRoutine(animation, renderer);
             }
         }
@@ -65,7 +65,7 @@ namespace MwSkinAdditions {
             SkinnedMeshRenderer renderer = null;
             GameObject model = SkinEvents.GetModelFromEventBody(gameObject);
             if (model) {
-                Transform mesh = transform.Find(meshName);
+                Transform mesh = model.transform.Find(meshName);
                 if (mesh) {
                     renderer = mesh.GetComponent<SkinnedMeshRenderer>();
                 }

@@ -1,6 +1,6 @@
 ﻿{
 	"name": "MwSkinAdditions",
-	"version_number": "1.0.8",
+	"version_number": "1.0.10",
 	"website_url": "https://github.com/mwoiii/mw-skin-additions",
 	"description": "A library for skin mods that enables easy addition of complex behaviours for more intricate skins.",
 	"dependencies": [

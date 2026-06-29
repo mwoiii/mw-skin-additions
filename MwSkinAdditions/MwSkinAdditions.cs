@@ -1,18 +1,19 @@
 using BepInEx;
 using MwSkinAdditions.Networking;
 using R2API.Networking;
+using R2API.Utils;
 
 namespace MwSkinAdditions {
 
     [BepInDependency(NetworkingAPI.PluginGUID)]
-
+    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
 
     public class MwSkinAdditions : BaseUnityPlugin {
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "mwmw";
         public const string PluginName = "MwSkinAdditions";
-        public const string PluginVersion = "1.0.8";
+        public const string PluginVersion = "1.0.10";
         public static PluginInfo pluginInfo;
         public static MwSkinAdditions instance;
 

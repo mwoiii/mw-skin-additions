@@ -1,10 +1,21 @@
+## 1.0.10
+
+- Fixed expressions not being applied in a run
+- Fixed skin applied lobby event not being called correctly
+
+## 1.0.9
+
+- Removed network compatibility requirement
+
 ## 1.0.8
 
 - Fixed skin applied lobby event not being called 
+  - I actually didn't fix it this update
 
 ## 1.0.7
 
 - Made codebase more protected against NREs
+  - Haha so I actually broke a million things when I did this. Thanks me
 - Fixed network messages not being registered
 
 ## 1.0.6
@@ -26,6 +37,7 @@
 - Transformed limbs now retain their custom size on death
 
 ## 1.0.2
+
 - Added checks to not apply transformations if in a vehicle state
 - Added option to not apply any transformations in the CSS
 

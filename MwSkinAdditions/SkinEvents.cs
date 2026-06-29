@@ -112,9 +112,9 @@ namespace MwSkinAdditions {
                 bodyEventSub = GetEventSubFromSkinDef(skinDef);
                 bodyEventSub.SkinAppliedLobby?.Invoke(self.gameObject);
             } else if (!bodyObject) {
-                EventSub.DifferentSkinAppliedGlobal?.Invoke(bodyObject);
-            } else {
                 EventSub.DifferentSkinAppliedGlobal?.Invoke(self.gameObject);
+            } else {
+                EventSub.DifferentSkinAppliedGlobal?.Invoke(bodyObject);
             }
         }
 
