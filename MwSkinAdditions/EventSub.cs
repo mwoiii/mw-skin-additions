@@ -72,6 +72,8 @@ namespace MwSkinAdditions {
 
         public Action<GameObject> HoldoutZoneCharged;
 
+        public Action<GameObject> LeaveSpawnTeleporterState; // typical next stage spawn state 
+
         [Obsolete("Provide an EventSubOptions object instead.")]
         public EventSub(SkinDef skinDef, BoneTransformation[] boneTransformations = null, ExtraObject[] extraObjects = null,
             bool useAnimations = false, BlendShapeAnimation[] blinkAnimations = null, IdleAnimation[] conditionalIdleAnimations = null,
@@ -153,6 +155,7 @@ namespace MwSkinAdditions {
             Idle += (GameObject _) => { Log.Debug("Idle event invoked!"); };
             GetItem += (GameObject _, ItemIndex _) => { Log.Debug("GetItem event invoked!"); };
             HoldoutZoneCharged += (GameObject _) => { Log.Debug("HoldoutZoneCharged event invoked!"); };
+            LeaveSpawnTeleporterState += (GameObject _) => { Log.Debug("LeaveSpawnTeleporterState event invoked!"); };
             */
             #endregion
         }

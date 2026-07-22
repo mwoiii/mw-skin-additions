@@ -1,3 +1,7 @@
+## 1.1.0
+
+- Added LeaveSpawnTeleporterState event
+
 ## 1.0.10
 
 - Fixed expressions not being applied in a run

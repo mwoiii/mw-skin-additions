@@ -53,6 +53,7 @@ namespace MwSkinAdditions {
             On.EntityStates.GenericCharacterMain.ApplyJumpVelocity += OnJump;
             On.RoR2.SceneExitController.Begin += OnLeaveStage;
             On.RoR2.CharacterBody.Update += OnBodyUpdate;
+            On.EntityStates.SpawnTeleporterState.OnExit += OnLeaveSpawnTeleporterState;
         }
 
         public static void SubscribeGlobalEvents() {
@@ -297,6 +298,13 @@ namespace MwSkinAdditions {
                     eventSub.LeaveStage?.Invoke(bodyObject);
                 }
             });
+        }
+
+        private static void OnLeaveSpawnTeleporterState(On.EntityStates.SpawnTeleporterState.orig_OnExit orig, EntityStates.SpawnTeleporterState self) {
+            orig(self);
+            if (Run.instance && Run.instance.stageClearCount > 0 && self.gameObject && GetEventSubFromBody(self.gameObject) is EventSub eventSub) {
+                eventSub.LeaveSpawnTeleporterState?.Invoke(self.gameObject);
+            }
         }
 
         /// <summary>
