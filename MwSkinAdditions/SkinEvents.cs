@@ -166,7 +166,7 @@ namespace MwSkinAdditions {
 
             orig(self, activator);
 
-            if (GetEventSubFromBody(self.gameObject) is EventSub eventSub) {
+            if (GetEventSubFromBody(activator.gameObject) is EventSub eventSub) {
                 bool success = successfulPurchaseCount < self.successfulPurchaseCount;
                 if (success) {
                     eventSub.ShrineSuccess?.Invoke(activator.gameObject);

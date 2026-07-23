@@ -1,3 +1,7 @@
+## 1.1.1
+
+- Fixed Shrine of Chance events from never firing
+
 ## 1.1.0
 
 - Added LeaveSpawnTeleporterState event
