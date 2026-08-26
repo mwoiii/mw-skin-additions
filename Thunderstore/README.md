@@ -14,4 +14,4 @@ If you want to use this library for your own skin mod, check out the Wiki tab ei
 ### Contact
 Discord: miyowi
 
-[Ko-fi](https://ko-fi.com/miyowi)
+Ko-fi: [Miyowi](https://ko-fi.com/miyowi)
