@@ -61,7 +61,7 @@ namespace MwSkinAdditions {
             }
 
             // final roll; resetting elapsed time if successful
-            if (time > soundArray.group.minWait && Random.value <= chance) {
+            if (time >= soundArray.group.minWait && Random.value <= chance) {
                 voiceGroupStopwatches[soundArray.group] = 0f;
                 timeSinceLastRolledLine = 0f;
                 return true;
