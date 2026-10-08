@@ -125,11 +125,19 @@ namespace MwSkinAdditions {
                 }
                 Transform boneTransform = transformInstance.boneTransform;
                 Transform relativeBone = transformInstance.relativeBone;
-                if (boneTransform && relativeBone && (transformInstance.prevLocalPosition != boneTransform.localPosition || forcePositionUpdate)) {
-                    boneTransform.position = relativeBone.TransformPoint(boneTransformations[i].position);
+                bool localHasMoved = transformInstance.prevLocalPosition != boneTransform.localPosition;
+                if (boneTransform && relativeBone && (localHasMoved || forcePositionUpdate)) {
+                    Vector3 positionOffset = boneTransformations[i].position;
+                    if (!localHasMoved) {
+                        boneTransform.position = relativeBone.TransformPoint(positionOffset - transformInstance.prevPositionOffset);
+                    } else {
+                        boneTransform.position = relativeBone.TransformPoint(positionOffset);
+                    }
                     transformInstance.prevLocalPosition = boneTransform.localPosition;
+                    transformInstance.prevPositionOffset = positionOffset;
                 }
             }
+            forcePositionUpdate = false;
         }
     }
 }

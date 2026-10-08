@@ -1,3 +1,9 @@
+## 1.1.3
+
+- Fixed an issue where bone transformation offsets could compound
+
+- Fixed bone transformation offsets never applying in the CSS
+
 ## 1.1.2
 
 - Updated dependencies
