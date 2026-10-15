@@ -112,7 +112,7 @@ namespace MwSkinAdditions {
         }
 
         public void Init() {
-            SkinEvents.SubscribeEventSkins(this);
+            SkinEvents.Register(this);
             if (boneTransformations != null) {
                 SubscribeTransformEvents();
             }

@@ -15,23 +15,43 @@ using UnityEngine;
 namespace MwSkinAdditions {
     public static class SkinEvents {
 
-        private static Dictionary<SkinDef, EventSub> skinDefToEventSub = new Dictionary<SkinDef, EventSub>();
+        private static List<EventSub> registeredEventSubs = new List<EventSub>();
+
+        private static Dictionary<SkinIndex, EventSub> skinIndexToEventSub = new Dictionary<SkinIndex, EventSub>();
 
         public static HashSet<CharacterBody> holdOffIdleInvocation = new HashSet<CharacterBody>();
+
+        private static bool loaded;
 
         public static void Init() {
             SubscribeGlobalEvents();
             SubscribeGameEvents();
+            SkinCatalog.availability.CallWhenAvailable(SubscribeEventSkins);
         }
 
-        public static void SubscribeEventSkins(EventSub eventSub) {
-            foreach (SkinDef skinDef in eventSub.skinDefs) {
-                if (skinDef == null) {
-                    Log.Error("Received a null SkinDef! Ignoring...");
+        public static void Register(EventSub eventSub) {
+            if (loaded) {
+                Log.Warning("Failed to register an EventSub because initialisation has already completed!");
+                return;
+            }
+            registeredEventSubs.Add(eventSub);
+        }
+
+        private static void SubscribeEventSkins() {
+            foreach (EventSub eventSub in registeredEventSubs) {
+                if (eventSub == null) {
+                    Log.Error("Received a null EventSub! Ignoring...");
                     continue;
                 }
-                skinDefToEventSub.Add(skinDef, eventSub);
+                foreach (SkinDef skinDef in eventSub.skinDefs) {
+                    if (skinDef == null) {
+                        Log.Error("Received a null SkinDef! Ignoring...");
+                        continue;
+                    }
+                    skinIndexToEventSub.Add(skinDef.skinIndex, eventSub);
+                }
             }
+            loaded = true;
         }
 
         private static void SubscribeGameEvents() {
@@ -64,21 +84,22 @@ namespace MwSkinAdditions {
         }
 
         public static EventSub GetEventSubFromBody(GameObject body) {
-            try {
-                SkinDef skinDef = SkinCatalog.FindCurrentSkinDefForBodyInstance(body);
-                return GetEventSubFromSkinDef(skinDef);
-            } catch (NullReferenceException) {
-                Log.Error("GetEventSubFromBody NRE! Returning null...");
+            if (!body) {
                 return null;
             }
+            SkinDef skinDef = SkinCatalog.FindCurrentSkinDefForBodyInstance(body);
+            if (skinDef == null) {
+                return null;
+            }
+            return GetEventSubFromSkinIndex(skinDef.skinIndex);
         }
 
-        public static EventSub GetEventSubFromSkinDef(SkinDef skinDef) {
-            if (skinDef == null || !skinDefToEventSub.ContainsKey(skinDef)) {
+        public static EventSub GetEventSubFromSkinIndex(SkinIndex skinIndex) {
+            if (skinIndex == SkinIndex.None || !skinIndexToEventSub.ContainsKey(skinIndex)) {
                 return null;
             }
 
-            return skinDefToEventSub[skinDef];
+            return skinIndexToEventSub[skinIndex];
         }
 
         private static void ForEachBodySafe(Action<GameObject> action) {
@@ -94,7 +115,10 @@ namespace MwSkinAdditions {
         }
 
         private static IEnumerator OnSkinAppliedBody(On.RoR2.ModelSkinController.orig_ApplySkinAsync orig, ModelSkinController self, int skinIndex, AsyncReferenceHandleUnloadType unloadType) {
-            yield return orig(self, skinIndex, unloadType);
+            var origSelf = orig(self, skinIndex, unloadType);
+            while (origSelf.MoveNext()) {
+                yield return origSelf.Current;
+            }
 
             GameObject bodyObject = null;
             EventSub bodyEventSub = null;
@@ -109,9 +133,9 @@ namespace MwSkinAdditions {
 
             if (bodyObject && bodyEventSub != null) {
                 bodyEventSub.SkinAppliedRun?.Invoke(bodyObject);
-            } else if (!bodyObject && ArrayUtils.GetSafe(self.skins, self.currentSkinIndex) is SkinDef skinDef && skinDefToEventSub.ContainsKey(skinDef)) {
-                bodyEventSub = GetEventSubFromSkinDef(skinDef);
-                bodyEventSub.SkinAppliedLobby?.Invoke(self.gameObject);
+            } else if (!bodyObject && ArrayUtils.GetSafe(self.skins, self.currentSkinIndex) is SkinDef skinDef && skinIndexToEventSub.ContainsKey(skinDef.skinIndex)) {
+                bodyEventSub = GetEventSubFromSkinIndex(skinDef.skinIndex);
+                bodyEventSub?.SkinAppliedLobby?.Invoke(self.gameObject);
             } else if (!bodyObject) {
                 EventSub.DifferentSkinAppliedGlobal?.Invoke(self.gameObject);
             } else {

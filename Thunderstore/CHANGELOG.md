@@ -1,6 +1,12 @@
+## 1.1.4
+
+- Resolved an incompat with MSU
+
+- Updated to work properly in the CSS following changes to R2API.Skins
+
 ## 1.1.3
 
-- Fixed an issue where bone transformation offsets could compound
+- Fixed an issue where certain bone transformation offsets could compound
 
 - Fixed bone transformation offsets never applying in the CSS
 
