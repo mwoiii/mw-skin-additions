@@ -5,21 +5,25 @@ using UnityEngine;
 namespace MwSkinAdditions {
     public class EventSub {
 
+        public SkinDef skinDef {
+            get {
+                if (skinDefs != null) {
+                    return skinDefs[0];
+                }
+                return null;
+            }
+            set {
+                if (skinDefs != null && skinDefs.Length >= 1) {
+                    skinDefs[0] = value;
+                } else {
+                    skinDefs = [value];
+                }
+            }
+        }
+
         public SkinDef[] skinDefs;
 
-        public BoneTransformation[] boneTransformations;
-
-        public ExtraObject[] extraObjects;
-
-        public bool useAnimations = false;
-
-        public BlendShapeAnimation[] blinkAnimations;
-
-        public IdleAnimation[] conditionalIdleAnimations;
-
-        public VoiceGroup[] voiceGroups;
-
-        public bool transformInCSS = true;
+        public EventSubOptions options;
 
 
         public static Action<GameObject> DifferentSkinAppliedGlobal;
@@ -78,54 +82,44 @@ namespace MwSkinAdditions {
         public EventSub(SkinDef skinDef, BoneTransformation[] boneTransformations = null, ExtraObject[] extraObjects = null,
             bool useAnimations = false, BlendShapeAnimation[] blinkAnimations = null, IdleAnimation[] conditionalIdleAnimations = null,
             VoiceGroup[] voiceGroups = null) {
-            this.skinDefs = new SkinDef[] { skinDef };
-            this.boneTransformations = boneTransformations;
-            this.extraObjects = extraObjects;
-            this.useAnimations = useAnimations;
-            this.blinkAnimations = blinkAnimations;
-            this.conditionalIdleAnimations = conditionalIdleAnimations;
-            this.voiceGroups = voiceGroups;
+            this.skinDef = skinDef;
+            options = new EventSubOptions() {
+                boneTransformations = boneTransformations,
+                extraObjects = extraObjects,
+                blinkAnimations = blinkAnimations,
+                conditionalIdleAnimations = conditionalIdleAnimations,
+                voiceGroups = voiceGroups,
+            };
         }
 
         public EventSub(SkinDef skinDef, EventSubOptions eventSubOptions) {
             eventSubOptions ??= new EventSubOptions();
-
-            skinDefs = new SkinDef[] { skinDef };
-            UnpackOptions(eventSubOptions);
+            options = eventSubOptions;
+            this.skinDef = skinDef;
         }
 
         public EventSub(SkinDef[] skinDefs, EventSubOptions eventSubOptions) {
             eventSubOptions ??= new EventSubOptions();
-
+            options = eventSubOptions;
             this.skinDefs = skinDefs;
-            UnpackOptions(eventSubOptions);
-        }
-
-        private void UnpackOptions(EventSubOptions eventSubOptions) {
-            boneTransformations = eventSubOptions.boneTransformations;
-            extraObjects = eventSubOptions.extraObjects;
-            useAnimations = eventSubOptions.useAnimations;
-            blinkAnimations = eventSubOptions.blinkAnimations;
-            conditionalIdleAnimations = eventSubOptions.conditionalIdleAnimations;
-            voiceGroups = eventSubOptions.voiceGroups;
-            transformInCSS = eventSubOptions.transformInCSS;
         }
 
         public void Init() {
             SkinEvents.Register(this);
-            if (boneTransformations != null) {
+
+            if (options?.boneTransformations != null) {
                 SubscribeTransformEvents();
             }
 
-            if (extraObjects != null) {
+            if (options?.extraObjects != null) {
                 SubscribeExtraObjectEvents();
             }
 
-            if (useAnimations) {
+            if (options?.isAnimated == true) {
                 SubscribeAnimationEvents();
             }
 
-            if (voiceGroups != null) {
+            if (options?.voiceGroups != null) {
                 SubscribeVoiceEvents();
             }
 
@@ -166,15 +160,16 @@ namespace MwSkinAdditions {
         }
 
         private void AddTransformController(GameObject body) {
-            if (Run.instance == null && !transformInCSS) {
+            if (options == null || (!Run.instance && !options.transformInCSS)) {
                 return;
             }
 
-            TransformController transformController = body.GetComponent<TransformController>();
-            if (transformController == null || transformController.beingDeleted) {
-                transformController = body.AddComponent<TransformController>();
+            TransformController newController = body.AddComponent<TransformController>();
+            if (body.TryGetComponent(out TransformController oldController) && oldController.beingDeleted) {
+                newController.transformReversions = oldController.transformReversions;
+                oldController.RevertPositionAndScale();
             }
-            transformController.Init(this);
+            newController.Init(this);
         }
 
         private void SubscribeExtraObjectEvents() {
@@ -186,7 +181,7 @@ namespace MwSkinAdditions {
             Transform model = SkinEvents.GetModelFromEventBody(body).transform;
             ExtraObjectController extraObjectController = body.AddComponent<ExtraObjectController>();
 
-            foreach (ExtraObject extraObject in extraObjects) {
+            foreach (ExtraObject extraObject in options.extraObjects) {
                 GameObject obj = UnityEngine.Object.Instantiate(extraObject.prefab);
                 obj.transform.parent = model.Find(extraObject.armatureParentPath);
                 obj.transform.localPosition = extraObject.localPosition;
@@ -203,7 +198,7 @@ namespace MwSkinAdditions {
 
         private void AddExpressionController(GameObject body) {
             ExpressionController expressionController = body.GetComponent<ExpressionController>();
-            if (expressionController == null) {
+            if (expressionController == null || expressionController.beingDeleted) {
                 expressionController = body.AddComponent<ExpressionController>();
             }
             expressionController.Init(this);
@@ -216,7 +211,7 @@ namespace MwSkinAdditions {
 
         private void AddVoiceController(GameObject body) {
             VoiceController voiceController = body.GetComponent<VoiceController>();
-            if (voiceController == null) {
+            if (voiceController == null || voiceController.beingDeleted) {
                 voiceController = body.AddComponent<VoiceController>();
             }
             voiceController.Init(this);

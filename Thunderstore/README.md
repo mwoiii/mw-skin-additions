@@ -7,7 +7,6 @@ This mod is a library for other skin mods to depend on. It provides a streamline
 - Armature transformations
 - Voicelines
 - BlendShape animations
-- Extra objects
 
 If you want to use this library for your own skin mod, check out the Wiki tab either on Thunderstore or GitHub for explanations and examples.
 

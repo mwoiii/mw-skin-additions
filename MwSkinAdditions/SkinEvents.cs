@@ -374,6 +374,7 @@ namespace MwSkinAdditions {
 
         public static void RemoveVoiceController(GameObject body) {
             if (body && body.TryGetComponent(out VoiceController voiceController)) {
+                voiceController.beingDeleted = true;
                 UnityEngine.Object.Destroy(voiceController);
             }
         }
@@ -381,6 +382,7 @@ namespace MwSkinAdditions {
         public static void RemoveExpressionController(GameObject body) {
             if (body && body.TryGetComponent(out ExpressionController expressionController)) {
                 expressionController.CancelCurrentExpressions();
+                expressionController.beingDeleted = true;
                 UnityEngine.Object.Destroy(expressionController);
             }
         }

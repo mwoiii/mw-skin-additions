@@ -1,3 +1,11 @@
+## 1.1.5
+
+- Added context-specific application of bone transformations via bitflags (i.e. can now specify only CSS for a transformation)
+
+- Bone transformations now correctly unapply scale and position when switching between skins in the CSS
+
+- Resolved an issue where expression and voice controllers would alternate between on and off for specific skins
+
 ## 1.1.4
 
 - Resolved an incompat with MSU

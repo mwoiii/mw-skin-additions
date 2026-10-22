@@ -6,7 +6,7 @@ using UnityEngine;
 namespace MwSkinAdditions {
     public class ExpressionController : MonoBehaviour {
 
-        private EventSub eventSub;
+        private EventSubOptions options;
 
         private CharacterBody cachedCharacterBody;
 
@@ -38,6 +38,8 @@ namespace MwSkinAdditions {
 
         private int blinkStoppers;
 
+        public bool beingDeleted;
+
         private class ExpressionState {
             public Coroutine coroutine;
             public BlendShapeAnimation animation;
@@ -45,7 +47,7 @@ namespace MwSkinAdditions {
             public bool finished;
         }
         public void Init(EventSub eventSub) {
-            this.eventSub = eventSub;
+            options = eventSub?.options;
             eventSub.Death += (GameObject body) => { inDeathState = true; };
         }
 
@@ -197,11 +199,11 @@ namespace MwSkinAdditions {
         }
 
         private void Update() {
-            if (eventSub.blinkAnimations != null && blinkStoppers <= 0) {
+            if (options.blinkAnimations != null && blinkStoppers <= 0) {
                 BlinkUpdate();
             }
 
-            if (eventSub.conditionalIdleAnimations != null) {
+            if (options.conditionalIdleAnimations != null) {
                 IdleUpdate();
             }
         }
@@ -212,7 +214,7 @@ namespace MwSkinAdditions {
             // try blinking if surpassed the previously specified interval
             if (blinkStopwatch >= blinkInterval) {
                 if (!inDeathState) {
-                    foreach (BlendShapeAnimation animation in eventSub.blinkAnimations) {
+                    foreach (BlendShapeAnimation animation in options.blinkAnimations) {
                         TryPlayAnimation(animation);
                     }
 
@@ -239,7 +241,7 @@ namespace MwSkinAdditions {
         }
 
         private void IdleUpdate() {
-            foreach (IdleAnimation idleAnimation in eventSub.conditionalIdleAnimations) {
+            foreach (IdleAnimation idleAnimation in options.conditionalIdleAnimations) {
                 if (idleAnimation != null && idleAnimation.condition != null) {
                     bool check = idleAnimation.condition(this);
                     if (check) {
