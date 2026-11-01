@@ -1,3 +1,9 @@
+## 1.1.6
+
+- Added innate support for lobby SkinDef overrides
+
+- The initial ExpressionController blinking interval is now randomized (no more guaranteed blinking when selecting in CSS)
+
 ## 1.1.5
 
 - Added context-specific application of bone transformations via bitflags (i.e. can now specify only CSS for a transformation)

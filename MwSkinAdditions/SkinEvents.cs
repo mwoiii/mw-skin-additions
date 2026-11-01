@@ -17,6 +17,8 @@ namespace MwSkinAdditions {
 
         private static List<EventSub> registeredEventSubs = new List<EventSub>();
 
+        private static Dictionary<SkinDef, EventSub> skinDefToEventSub = new Dictionary<SkinDef, EventSub>();
+
         private static Dictionary<SkinIndex, EventSub> skinIndexToEventSub = new Dictionary<SkinIndex, EventSub>();
 
         public static HashSet<CharacterBody> holdOffIdleInvocation = new HashSet<CharacterBody>();
@@ -48,6 +50,7 @@ namespace MwSkinAdditions {
                         Log.Error("Received a null SkinDef! Ignoring...");
                         continue;
                     }
+                    skinDefToEventSub.Add(skinDef, eventSub);
                     skinIndexToEventSub.Add(skinDef.skinIndex, eventSub);
                 }
             }
@@ -91,15 +94,17 @@ namespace MwSkinAdditions {
             if (skinDef == null) {
                 return null;
             }
-            return GetEventSubFromSkinIndex(skinDef.skinIndex);
+            return GetEventSubFromSkinDef(skinDef);
         }
 
-        public static EventSub GetEventSubFromSkinIndex(SkinIndex skinIndex) {
-            if (skinIndex == SkinIndex.None || !skinIndexToEventSub.ContainsKey(skinIndex)) {
-                return null;
+        public static EventSub GetEventSubFromSkinDef(SkinDef skinDef) {
+            if (skinDef != null && skinDefToEventSub.ContainsKey(skinDef)) {
+                return skinDefToEventSub[skinDef];
+            } else if (skinDef != null && skinDef.skinIndex != SkinIndex.None && skinIndexToEventSub.ContainsKey(skinDef.skinIndex)) {
+                return skinIndexToEventSub[skinDef.skinIndex];
             }
 
-            return skinIndexToEventSub[skinIndex];
+            return null;
         }
 
         private static void ForEachBodySafe(Action<GameObject> action) {
@@ -133,9 +138,8 @@ namespace MwSkinAdditions {
 
             if (bodyObject && bodyEventSub != null) {
                 bodyEventSub.SkinAppliedRun?.Invoke(bodyObject);
-            } else if (!bodyObject && ArrayUtils.GetSafe(self.skins, self.currentSkinIndex) is SkinDef skinDef && skinIndexToEventSub.ContainsKey(skinDef.skinIndex)) {
-                bodyEventSub = GetEventSubFromSkinIndex(skinDef.skinIndex);
-                bodyEventSub?.SkinAppliedLobby?.Invoke(self.gameObject);
+            } else if (!bodyObject && ArrayUtils.GetSafe(self.skins, self.currentSkinIndex) is SkinDef skinDef && GetEventSubFromSkinDef(skinDef) is EventSub cssBodyEventSub) {
+                cssBodyEventSub?.SkinAppliedLobby?.Invoke(self.gameObject);
             } else if (!bodyObject) {
                 EventSub.DifferentSkinAppliedGlobal?.Invoke(self.gameObject);
             } else {
@@ -251,7 +255,7 @@ namespace MwSkinAdditions {
                               x => x.MatchStloc(out pickupLoc)) &&                                           // PickupDef pickupDef = PickupCatalog.GetPickupDef(pickupState.pickupIndex);
                 c.TryGotoNext(x => x.MatchLdfld<PickupDef.GrantContext>("shouldDestroy") &&              // then match:
                 c.TryGotoNext(MoveType.After, x => x.MatchStfld<GenericPickupController>("consumed")))   // consumed = context.shouldDestroy;
-                ) {
+               ) {
                 c.Emit(OpCodes.Ldarg_1);
                 c.Emit(OpCodes.Ldloc, pickupLoc);
                 c.EmitDelegate(invokeGetItemDelegate);

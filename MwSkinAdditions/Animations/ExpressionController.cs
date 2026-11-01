@@ -1,6 +1,7 @@
 using RoR2;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace MwSkinAdditions {
@@ -46,6 +47,11 @@ namespace MwSkinAdditions {
             public SkinnedMeshRenderer skinnedMeshRenderer;
             public bool finished;
         }
+
+        ExpressionController() {
+            blinkInterval = Random.Range(0f, 5f);
+        }
+
         public void Init(EventSub eventSub) {
             options = eventSub?.options;
             eventSub.Death += (GameObject body) => { inDeathState = true; };
@@ -235,7 +241,7 @@ namespace MwSkinAdditions {
                 if (doubleBlink) {
                     blinkInterval = 0.3f;
                 } else {
-                    blinkInterval = UnityEngine.Random.Range(3f, 8f);
+                    blinkInterval = Random.Range(3f, 8f);
                 }
             }
         }
