@@ -1,3 +1,9 @@
+## 1.1.7
+
+- Added an OnUpdate delegate to BoneTransformations
+
+- Added the ability to provide position, scale, and relative bone overrides to TransformationInstances
+
 ## 1.1.6
 
 - Added innate support for lobby SkinDef overrides

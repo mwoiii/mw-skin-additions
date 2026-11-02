@@ -13,6 +13,8 @@ namespace MwSkinAdditions {
 
         public TransformContexts contexts = TransformContexts.All;
 
+        public Action<TransformationInstance> OnUpdate;
+
         public BoneTransformation(string armaturePath, Vector3 localScale, Vector3 position, string relativeBonePath = null) {
             this.armaturePath = armaturePath;
             this.localScale = localScale;
