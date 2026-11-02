@@ -1,3 +1,7 @@
+## 1.1.8
+
+- Fixed the possibility of lobby event-ordering issues
+
 ## 1.1.7
 
 - Added an OnUpdate delegate to BoneTransformations

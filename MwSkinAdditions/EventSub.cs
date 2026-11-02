@@ -27,6 +27,8 @@ namespace MwSkinAdditions {
 
 
         public static Action<GameObject> DifferentSkinAppliedGlobal;
+        
+        private Action<GameObject> SkinAppliedLobbyEarly; // ensure components are added before any event stuff fires
 
         public Action<GameObject> SkinAppliedLobby;
 
@@ -78,29 +80,36 @@ namespace MwSkinAdditions {
 
         public Action<GameObject> LeaveSpawnTeleporterState; // typical next stage spawn state 
 
-        [Obsolete("Provide an EventSubOptions object instead.")]
-        public EventSub(SkinDef skinDef, BoneTransformation[] boneTransformations = null, ExtraObject[] extraObjects = null,
-            bool useAnimations = false, BlendShapeAnimation[] blinkAnimations = null, IdleAnimation[] conditionalIdleAnimations = null,
-            VoiceGroup[] voiceGroups = null) {
-            this.skinDef = skinDef;
-            options = new EventSubOptions() {
-                boneTransformations = boneTransformations,
-                extraObjects = extraObjects,
-                blinkAnimations = blinkAnimations,
-                conditionalIdleAnimations = conditionalIdleAnimations,
-                voiceGroups = voiceGroups,
+        public EventSub() {
+            options ??= new EventSubOptions();
+            SkinAppliedLobby += (GameObject body) => {
+                SkinAppliedLobbyEarly?.Invoke(body);
             };
         }
 
-        public EventSub(SkinDef skinDef, EventSubOptions eventSubOptions) {
-            eventSubOptions ??= new EventSubOptions();
-            options = eventSubOptions;
+        [Obsolete("Provide an EventSubOptions object instead.")]
+        public EventSub(SkinDef skinDef, BoneTransformation[] boneTransformations = null, ExtraObject[] extraObjects = null,
+            bool useAnimations = false, BlendShapeAnimation[] blinkAnimations = null, IdleAnimation[] conditionalIdleAnimations = null,
+            VoiceGroup[] voiceGroups = null) : this() {
+            this.skinDef = skinDef;
+            options.boneTransformations = boneTransformations;
+            options.extraObjects = extraObjects;
+            options.blinkAnimations = blinkAnimations;
+            options.conditionalIdleAnimations = conditionalIdleAnimations;
+            options.voiceGroups = voiceGroups;
+        }
+
+        public EventSub(SkinDef skinDef, EventSubOptions eventSubOptions) : this() {
+            if (eventSubOptions != null) {
+                options = eventSubOptions;
+            }
             this.skinDef = skinDef;
         }
 
-        public EventSub(SkinDef[] skinDefs, EventSubOptions eventSubOptions) {
-            eventSubOptions ??= new EventSubOptions();
-            options = eventSubOptions;
+        public EventSub(SkinDef[] skinDefs, EventSubOptions eventSubOptions) : this() {
+            if (eventSubOptions != null) {
+                options = eventSubOptions;
+            }
             this.skinDefs = skinDefs;
         }
 
@@ -125,6 +134,7 @@ namespace MwSkinAdditions {
 
             # region Debug
             /*
+            SkinAppliedLobbyEarly += (GameObject _) => { Log.Debug("SkinAppliedLobbyEarly event invoked!"); };
             SkinAppliedLobby += (GameObject _) => { Log.Debug("SkinAppliedLobby event invoked!"); };
             SkinAppliedRun += (GameObject _) => { Log.Debug("SkinAppliedRun event invoked!"); };
             TakeDamage += (GameObject _, DamageReport _) => { Log.Debug("TakeDamage event invoked!"); };
@@ -156,7 +166,7 @@ namespace MwSkinAdditions {
 
         private void SubscribeTransformEvents() {
             SkinAppliedRun += AddTransformController;
-            SkinAppliedLobby += AddTransformController;
+            SkinAppliedLobbyEarly += AddTransformController;
         }
 
         private void AddTransformController(GameObject body) {
@@ -174,7 +184,7 @@ namespace MwSkinAdditions {
 
         private void SubscribeExtraObjectEvents() {
             SkinAppliedRun += AddExtraObjects;
-            SkinAppliedLobby += AddExtraObjects;
+            SkinAppliedLobbyEarly += AddExtraObjects;
         }
 
         private void AddExtraObjects(GameObject body) {
@@ -193,7 +203,7 @@ namespace MwSkinAdditions {
 
         private void SubscribeAnimationEvents() {
             SkinAppliedRun += AddExpressionController;
-            SkinAppliedLobby += AddExpressionController;
+            SkinAppliedLobbyEarly += AddExpressionController;
         }
 
         private void AddExpressionController(GameObject body) {
@@ -206,7 +216,7 @@ namespace MwSkinAdditions {
 
         private void SubscribeVoiceEvents() {
             SkinAppliedRun += AddVoiceController;
-            SkinAppliedLobby += AddVoiceController;
+            SkinAppliedLobbyEarly += AddVoiceController;
         }
 
         private void AddVoiceController(GameObject body) {
