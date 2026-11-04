@@ -51,7 +51,9 @@ namespace MwSkinAdditions {
                         continue;
                     }
                     skinDefToEventSub.Add(skinDef, eventSub);
-                    skinIndexToEventSub.Add(skinDef.skinIndex, eventSub);
+                    if (skinDef.skinIndex != SkinIndex.None) {
+                        skinIndexToEventSub.Add(skinDef.skinIndex, eventSub);
+                    }
                 }
             }
             loaded = true;

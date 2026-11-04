@@ -1,3 +1,7 @@
+## 1.1.9
+
+- Fixed an error caused by skins with lobby-specific SkinDefs
+
 ## 1.1.8
 
 - Fixed the possibility of lobby event-ordering issues
