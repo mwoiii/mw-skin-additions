@@ -6,6 +6,7 @@ using RoR2;
 
 namespace MwSkinAdditions {
 
+    [BepInDependency(dteeicons.dteeicons.PluginGUID, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(NetworkingAPI.PluginGUID)]
     [BepInDependency(R2API.Skins.PluginGUID)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync)]
@@ -15,7 +16,7 @@ namespace MwSkinAdditions {
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "mwmw";
         public const string PluginName = "MwSkinAdditions";
-        public const string PluginVersion = "1.1.9";
+        public const string PluginVersion = "1.2.0";
         public static PluginInfo pluginInfo;
         public static MwSkinAdditions instance;
 

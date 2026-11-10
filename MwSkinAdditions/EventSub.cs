@@ -1,4 +1,5 @@
-﻿using RoR2;
+﻿using HG;
+using RoR2;
 using System;
 using UnityEngine;
 
@@ -27,7 +28,7 @@ namespace MwSkinAdditions {
 
 
         public static Action<GameObject> DifferentSkinAppliedGlobal;
-        
+
         private Action<GameObject> SkinAppliedLobbyEarly; // ensure components are added before any event stuff fires
 
         public Action<GameObject> SkinAppliedLobby;
@@ -132,6 +133,10 @@ namespace MwSkinAdditions {
                 SubscribeVoiceEvents();
             }
 
+            if (options?.customIcons != null) {
+                SubscribeCustomIconEvents();
+            }
+
             # region Debug
             /*
             SkinAppliedLobbyEarly += (GameObject _) => { Log.Debug("SkinAppliedLobbyEarly event invoked!"); };
@@ -207,8 +212,7 @@ namespace MwSkinAdditions {
         }
 
         private void AddExpressionController(GameObject body) {
-            ExpressionController expressionController = body.GetComponent<ExpressionController>();
-            if (expressionController == null || expressionController.beingDeleted) {
+            if (!body.TryGetComponent(out ExpressionController expressionController) || expressionController.beingDeleted) {
                 expressionController = body.AddComponent<ExpressionController>();
             }
             expressionController.Init(this);
@@ -220,11 +224,25 @@ namespace MwSkinAdditions {
         }
 
         private void AddVoiceController(GameObject body) {
-            VoiceController voiceController = body.GetComponent<VoiceController>();
-            if (voiceController == null || voiceController.beingDeleted) {
+            if (!body.TryGetComponent(out VoiceController voiceController) || voiceController.beingDeleted) {
                 voiceController = body.AddComponent<VoiceController>();
             }
             voiceController.Init(this);
+        }
+
+        private void SubscribeCustomIconEvents() {
+            SkinAppliedRun += SwapBodyIconRun;
+        }
+
+        private static void SwapBodyIconRun(GameObject body) {
+            if (body.TryGetComponent(out CharacterBody characterBody) &&
+                characterBody.modelLocator &&
+                characterBody.modelLocator.modelTransform &&
+                characterBody.modelLocator.modelTransform.TryGetComponent(out ModelSkinController skinController) &&
+                ArrayUtils.GetSafe(skinController.skins, skinController.currentSkinIndex).TryGetCustomIcon(out Texture icon)
+               ) {
+                characterBody.portraitIcon = icon;
+            }
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.XR;
 
 namespace MwSkinAdditions {
     public class TransformationInstance {

@@ -5,15 +5,18 @@ namespace MwSkinAdditions {
     public class BoneTransformation {
         public string armaturePath;
 
-        public Vector3 localScale;
+        public Vector3 localScale = Vector3.one;
 
-        public Vector3 position;
+        public Vector3 position = Vector3.zero;
 
         public string relativeBonePath;
 
         public TransformContexts contexts = TransformContexts.All;
 
         public Action<TransformationInstance> OnUpdate;
+
+        public BoneTransformation() {
+        }
 
         public BoneTransformation(string armaturePath, Vector3 localScale, Vector3 position, string relativeBonePath = null) {
             this.armaturePath = armaturePath;

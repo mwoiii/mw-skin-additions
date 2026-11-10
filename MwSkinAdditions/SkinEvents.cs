@@ -7,6 +7,7 @@ using R2API.Networking;
 using R2API.Networking.Interfaces;
 using RoR2;
 using RoR2.ContentManagement;
+using RoR2.UI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -21,7 +22,13 @@ namespace MwSkinAdditions {
 
         private static Dictionary<SkinIndex, EventSub> skinIndexToEventSub = new Dictionary<SkinIndex, EventSub>();
 
+        private static Dictionary<SkinDef, Texture> skinDefToCustomIcon = new Dictionary<SkinDef, Texture>();
+
+        private static Dictionary<SkinIndex, Texture> skinIndexToCustomIcon = new Dictionary<SkinIndex, Texture>();
+
         public static HashSet<CharacterBody> holdOffIdleInvocation = new HashSet<CharacterBody>();
+
+        private static SurvivorIconController cssSelectedSurvivorIcon;
 
         private static bool loaded;
 
@@ -39,20 +46,37 @@ namespace MwSkinAdditions {
             registeredEventSubs.Add(eventSub);
         }
 
+        public static bool TryGetCustomIcon(this SkinDef skinDef, out Texture icon) {
+            icon = GetCustomIconFromSkinDef(skinDef);
+            if (icon) {
+                return true;
+            }
+            return false;
+        }
+
         private static void SubscribeEventSkins() {
-            foreach (EventSub eventSub in registeredEventSubs) {
+            foreach (var eventSub in registeredEventSubs) {
                 if (eventSub == null) {
                     Log.Error("Received a null EventSub! Ignoring...");
                     continue;
                 }
-                foreach (SkinDef skinDef in eventSub.skinDefs) {
+                for (int i = 0; i < eventSub.skinDefs.Length; i++) {
+                    var skinDef = eventSub.skinDefs[i];
                     if (skinDef == null) {
                         Log.Error("Received a null SkinDef! Ignoring...");
                         continue;
                     }
                     skinDefToEventSub.Add(skinDef, eventSub);
-                    if (skinDef.skinIndex != SkinIndex.None) {
+                    var hasSkinIndex = skinDef.skinIndex != SkinIndex.None;
+                    if (hasSkinIndex) {
                         skinIndexToEventSub.Add(skinDef.skinIndex, eventSub);
+                    }
+                    if (eventSub.options?.customIcons != null && i < eventSub.options.customIcons.Length && eventSub.options.customIcons[i] != null) {
+                        var icon = eventSub.options.customIcons[i];
+                        skinDefToCustomIcon.Add(skinDef, icon);
+                        if (hasSkinIndex) {
+                            skinIndexToCustomIcon.Add(skinDef.skinIndex, icon);
+                        }
                     }
                 }
             }
@@ -79,6 +103,35 @@ namespace MwSkinAdditions {
             On.RoR2.SceneExitController.Begin += OnLeaveStage;
             On.RoR2.CharacterBody.Update += OnBodyUpdate;
             On.EntityStates.SpawnTeleporterState.OnExit += OnLeaveSpawnTeleporterState;
+            On.RoR2.UI.SurvivorIconController.Rebuild += OnIconsRebuilt;
+            On.RoR2.UI.CharacterSelectController.RebuildLocal += OnLocalCSSLoadoutChanged;
+            if (Compat.iconsModEnabled) {
+                Compat.EnableIconsModHooks();
+            }
+        }
+
+        private static void OnLocalCSSLoadoutChanged(On.RoR2.UI.CharacterSelectController.orig_RebuildLocal orig, CharacterSelectController self, bool deselectButtons) {
+            orig(self, deselectButtons);
+            if (self.characterSelectBarController && cssSelectedSurvivorIcon == self.characterSelectBarController.pickedIcon) {
+                self.characterSelectBarController.pickedIcon.shouldRebuild = true;
+            }
+            cssSelectedSurvivorIcon = self.characterSelectBarController.pickedIcon;
+        }
+
+        private static void OnIconsRebuilt(On.RoR2.UI.SurvivorIconController.orig_Rebuild orig, SurvivorIconController self) {
+            orig(self);
+            if (!self.survivorIcon) {
+                return;
+            }
+
+            var skinIndex = self.GetLocalUser()?.currentNetworkUser.AsValidOrNull()?.networkLoadout.AsValidOrNull()?.loadout?.bodyLoadoutManager?.GetSkinIndex(self.survivorBodyIndex);
+            if (skinIndex != null) {
+                var skinController = self.survivorDef?.displayPrefab.AsValidOrNull()?.GetComponentInChildren<ModelSkinController>();
+                if (skinController && ArrayUtils.GetSafe(skinController.skins, (int)skinIndex).TryGetCustomIcon(out Texture icon)) {
+                    self.survivorIcon.texture = icon;
+                    Compat.shouldOverrideIconsMod = true;
+                }
+            }
         }
 
         public static void SubscribeGlobalEvents() {
@@ -104,6 +157,18 @@ namespace MwSkinAdditions {
                 return skinDefToEventSub[skinDef];
             } else if (skinDef != null && skinDef.skinIndex != SkinIndex.None && skinIndexToEventSub.ContainsKey(skinDef.skinIndex)) {
                 return skinIndexToEventSub[skinDef.skinIndex];
+            }
+
+            return null;
+        }
+
+        public static Texture GetCustomIconFromSkinDef(SkinDef skinDef) {
+            if (skinDef != null) {
+                if (skinDefToCustomIcon.ContainsKey(skinDef)) {
+                    return skinDefToCustomIcon[skinDef];
+                } else if (skinDef.skinIndex != SkinIndex.None && skinIndexToCustomIcon.ContainsKey(skinDef.skinIndex)) {
+                    return skinIndexToCustomIcon[skinDef.skinIndex];
+                }
             }
 
             return null;
@@ -136,16 +201,15 @@ namespace MwSkinAdditions {
 
             if (bodyObject) {
                 bodyEventSub = GetEventSubFromBody(bodyObject);
+                EventSub.DifferentSkinAppliedGlobal?.Invoke(bodyObject);
+            } else {
+                EventSub.DifferentSkinAppliedGlobal?.Invoke(self.gameObject);
             }
 
             if (bodyObject && bodyEventSub != null) {
                 bodyEventSub.SkinAppliedRun?.Invoke(bodyObject);
             } else if (!bodyObject && ArrayUtils.GetSafe(self.skins, self.currentSkinIndex) is SkinDef skinDef && GetEventSubFromSkinDef(skinDef) is EventSub cssBodyEventSub) {
                 cssBodyEventSub?.SkinAppliedLobby?.Invoke(self.gameObject);
-            } else if (!bodyObject) {
-                EventSub.DifferentSkinAppliedGlobal?.Invoke(self.gameObject);
-            } else {
-                EventSub.DifferentSkinAppliedGlobal?.Invoke(bodyObject);
             }
         }
 
@@ -341,7 +405,7 @@ namespace MwSkinAdditions {
         /// Gets the model GameObject which houses the armature.
         /// 
         /// Events that fire in the CSS will return the model GameObject, whereas events that fire in a run will return the body GameObject, which is a separate thing.
-        /// Given either the model or body GameObject, this method will return the model GameObject by checking if a run is active or not.
+        /// Given either the model or body GameObject, this method will return the model GameObject by checking if a stage is active or not.
         /// </summary>
         /// <param name="body"></param>
         /// <returns></returns>
@@ -396,7 +460,7 @@ namespace MwSkinAdditions {
         private static void OnBodyUpdate(On.RoR2.CharacterBody.orig_Update orig, CharacterBody self) {
             orig(self);
 
-            if (self == null) {
+            if (!self) {
                 return;
             }
 

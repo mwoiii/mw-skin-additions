@@ -1,3 +1,10 @@
+## 1.2.0
+
+- Added the ability to provide icon portrait overrides on a per-skin basis
+  - Compatible with the Icons mod by DTEE (i.e. nothing should break. Icon portraits provided through this mod take precedence)
+<br></br>
+- The `DifferentSkinAppliedGlobal` event now correctly fires when switching to another registered skin
+
 ## 1.1.9
 
 - Fixed an error caused by skins with lobby-specific SkinDefs

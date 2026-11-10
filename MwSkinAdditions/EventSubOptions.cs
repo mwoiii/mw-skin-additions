@@ -11,6 +11,18 @@ namespace MwSkinAdditions {
 
         public VoiceGroup[] voiceGroups = null;
 
+        public Texture customIcon {
+            get {
+                return customIcons == null || customIcons.Length <= 0 ? null : customIcons[0];
+            }
+            set {
+                customIcons ??= [value];
+            }
+        }
+
+        [Tooltip("SkinDefs associated with this EventSub will take on the icon that shares its index - out of bounds or null will leave it as default")]
+        public Texture[] customIcons = null;
+
         [Tooltip("Set to false to disable all bone transformations in the CSS/lobby. Use the 'contexts' flags field in TransformationOptions for more customisability.")]
         public bool transformInCSS = true;
 
