@@ -1,9 +1,10 @@
+using HG;
 using RoR2;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace MwSkinAdditions {
-    public class TransformController : MonoBehaviour {
+    public class TransformController : MwBaseComponent {
 
         private List<TransformationInstance> transformInstances;
 
@@ -13,7 +14,7 @@ namespace MwSkinAdditions {
 
         private Animator animator;
 
-        public bool beingDeleted = false;
+        private GameObject model;
 
         #region RuntimeInspector stuff for easy testing
 
@@ -59,12 +60,13 @@ namespace MwSkinAdditions {
 
         #endregion
 
-        public void Init(EventSub eventSub) {
+        public override void Init(EventSub eventSub) {
             boneTransformations = eventSub.options.boneTransformations;
             rtiBoneTransformation = boneTransformations[rtiIndex];
             _rtiPositionVector = rtiBoneTransformation.position;
             _rtiLocalScaleVector = rtiBoneTransformation.localScale;
-            animator = SkinEvents.GetModelFromEventBody(gameObject).GetComponent<Animator>();
+            model = SkinEvents.GetModelFromEventBody(gameObject);
+            animator = model.AsValidOrNull()?.GetComponent<Animator>();
             AssignTransformations();
         }
 
@@ -80,34 +82,15 @@ namespace MwSkinAdditions {
             }
 
             for (int i = 0; i < boneTransformations.Length; i++) {
-                GameObject model = SkinEvents.GetModelFromEventBody(gameObject);
-                Transform bone = model.transform.Find(boneTransformations[i].armaturePath);
-                if (bone) {
-                    TransformContexts boneContext = boneTransformations[i].contexts;
-                    TransformationInstance transformInstance = new TransformationInstance() {
-                        model = model,
-                        boneTransform = bone,
-                        shouldApply = (
-                            // in a run
-                            (Run.instance && ((boneContext & TransformContexts.Run) == TransformContexts.Run)) ||
-                            // in css
-                            (!Run.instance && ((boneContext & TransformContexts.CSS) == TransformContexts.CSS))
-                        ),
-                        animator = animator
-                    };
-                    transformInstance.SetRelativeBoneByPath(boneTransformations[i].relativeBonePath);
+                TransformationInstance transformInstance = new TransformationInstance(model, animator, boneTransformations[i]);
+
+                if (transformInstance.resolved) {
                     transformInstances.Add(transformInstance);
-
-                    if (!transformReversions.ContainsKey(bone)) {
-                        transformReversions.Add(bone, new TransformationReversion() {
-                            boneTransform = bone,
-                            initialLocalScale = bone.localScale,
-                            initialLocalPosition = bone.localPosition,
-                        });
+                    if (!transformReversions.ContainsKey(transformInstance.boneTransform)) {
+                        transformReversions.Add(transformInstance.boneTransform, new TransformationReversion(transformInstance.boneTransform));
                     }
-
                 } else {
-                    Log.Error($"Received invalid bone path: {boneTransformations[i].armaturePath}");
+                    Log.Error($"Failed to resolve TransformationInstance with target bone path \"{transformInstance.baseData.targetBonePath}\"");
                 }
             }
 
@@ -124,64 +107,40 @@ namespace MwSkinAdditions {
         }
 
         private void ApplyPostionAndScale() {
-            for (int i = 0; i < transformInstances.Count; i++) {
-                TransformationInstance transformationInstance = transformInstances[i];
-                if (transformationInstance == null || !transformationInstance.shouldApply) {
+            foreach (var instance in transformInstances) {
+                if (instance == null || !instance.shouldApply) {
                     continue;
                 }
 
-                Transform boneTransform = transformationInstance.boneTransform;
-                BoneTransformation transformationBase = boneTransformations[i];
+                Transform boneTransform = instance.boneTransform;
+                BoneTransformation baseData = instance.baseData;
 
                 // apply position
                 if ((!characterBody || (characterBody && !characterBody.currentVehicle)) && animator && animator.enabled) {
-                    Transform relativeBone = transformationInstance.relativeBoneOverride ? transformationInstance.relativeBoneOverride : transformationInstance.relativeBone;
-                    bool localHasMoved = transformationInstance.prevLocalPosition != boneTransform.localPosition;
+                    Transform relativeBone = instance.relativeBoneOverride ? instance.relativeBoneOverride : instance.relativeBone;
+                    bool localHasMoved = instance.prevLocalPosition != boneTransform.localPosition;
                     if (boneTransform && relativeBone && (localHasMoved || forcePositionUpdate)) {
-                        Vector3 positionOffset = transformationInstance.positionOverride != null ? (Vector3)transformationInstance.positionOverride : transformationBase.position;
+                        Vector3 positionOffset = instance.positionOverride != null ? (Vector3)instance.positionOverride : baseData.position;
                         if (!localHasMoved) {
-                            boneTransform.position = relativeBone.TransformPoint(positionOffset - transformationInstance.prevPositionOffset);
+                            boneTransform.position = relativeBone.TransformPoint(positionOffset - instance.prevPositionOffset);
                         } else {
                             boneTransform.position = relativeBone.TransformPoint(positionOffset);
                         }
-                        transformationInstance.prevLocalPosition = boneTransform.localPosition;
-                        transformationInstance.prevPositionOffset = positionOffset;
+                        instance.prevLocalPosition = boneTransform.localPosition;
+                        instance.prevPositionOffset = positionOffset;
                     }
                 }
 
                 // apply scale
-                if (transformationInstance.boneTransform) {
-                    boneTransform.localScale = transformationInstance.localScaleOverride != null ? (Vector3)transformationInstance.localScaleOverride : transformationBase.localScale;
+                if (instance.boneTransform) {
+                    boneTransform.localScale = instance.localScaleOverride != null ? (Vector3)instance.localScaleOverride : baseData.localScale;
                 }
 
                 // run callbacks
-                transformationBase.OnUpdate?.Invoke(transformationInstance);
+                baseData.OnUpdate?.Invoke(instance);
             }
             forcePositionUpdate = false;
         }
-
-        //private void ApplyPosition() {
-        //    for (int i = 0; i < transformInstances.Count; i++) {
-        //        TransformationInstance transformInstance = transformInstances[i];
-        //        if (transformInstance == null || !transformInstance.shouldApply) {
-        //            continue;
-        //        }
-        //        Transform boneTransform = transformInstance.boneTransform;
-        //        Transform relativeBone = transformInstance.relativeBone;
-        //        bool localHasMoved = transformInstance.prevLocalPosition != boneTransform.localPosition;
-        //        if (boneTransform && relativeBone && (localHasMoved || forcePositionUpdate)) {
-        //            Vector3 positionOffset = boneTransformations[i].position;
-        //            if (!localHasMoved) {
-        //                boneTransform.position = relativeBone.TransformPoint(positionOffset - transformInstance.prevPositionOffset);
-        //            } else {
-        //                boneTransform.position = relativeBone.TransformPoint(positionOffset);
-        //            }
-        //            transformInstance.prevLocalPosition = boneTransform.localPosition;
-        //            transformInstance.prevPositionOffset = positionOffset;
-        //        }
-        //    }
-        //    forcePositionUpdate = false;
-        //}
 
         private void OnDestroy() {
             if (!reverted) {
@@ -194,6 +153,14 @@ namespace MwSkinAdditions {
                 reversion.Apply();
             }
             reverted = true;
+        }
+
+        public override void OnSwapWith<T>(T component) {
+            if (component is TransformController) {
+                var oldController = component as TransformController;
+                transformReversions = oldController.transformReversions;
+                oldController.RevertPositionAndScale();
+            }
         }
     }
 }

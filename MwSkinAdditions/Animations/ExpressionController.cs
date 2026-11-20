@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace MwSkinAdditions {
-    public class ExpressionController : MonoBehaviour {
+    public class ExpressionController : MwBaseComponent {
 
         private EventSubOptions options;
 
@@ -38,8 +38,6 @@ namespace MwSkinAdditions {
 
         private int blinkStoppers;
 
-        public bool beingDeleted;
-
         private class ExpressionState {
             public Coroutine coroutine;
             public BlendShapeAnimation animation;
@@ -51,7 +49,7 @@ namespace MwSkinAdditions {
             blinkInterval = Random.Range(0f, 5f);
         }
 
-        public void Init(EventSub eventSub) {
+        public override void Init(EventSub eventSub) {
             options = eventSub?.options;
             eventSub.Death += (GameObject body) => { inDeathState = true; };
         }
@@ -226,7 +224,7 @@ namespace MwSkinAdditions {
                     // if this was a double blink, toggle off and don't roll, else roll for one
                     if (doubleBlink) {
                         doubleBlink = false;
-                    } else if (UnityEngine.Random.value <= 0.1f) {
+                    } else if (Random.value <= 0.1f) {
                         doubleBlink = true;
                     }
 
@@ -263,6 +261,11 @@ namespace MwSkinAdditions {
                     }
                 }
             }
+        }
+
+        public override void MarkForDeletion() {
+            CancelCurrentExpressions();
+            base.MarkForDeletion();
         }
     }
 }

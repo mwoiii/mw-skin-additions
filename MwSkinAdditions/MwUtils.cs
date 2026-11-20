@@ -1,7 +1,6 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace MwSkinAdditions {
@@ -48,19 +47,48 @@ namespace MwSkinAdditions {
             return null;
         }
 
-        public static IEnumerator ExecuteWhenNearPosition(Action action, GameObject gameObject, Vector3 position, float maxWait = 1f) {
-            float stopwatch = 0f;
-            while (Vector3.Distance(gameObject.transform.position, position) > 0.5f && stopwatch < maxWait) {
-                stopwatch += Time.deltaTime;
-                yield return null;
-            }
-            action?.Invoke();
-        }
-
         public static void SafeSetBlendShapeWeight(this SkinnedMeshRenderer renderer, int index, float value) {
             if (renderer) {
                 renderer.SetBlendShapeWeight(index, value);
             }
+        }
+
+        public static T SwapWith<T>(this T newComponent, T oldComponent) where T : MwBaseComponent {
+            newComponent.OnSwapWith(oldComponent);
+            return newComponent;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float Mod(float a, float b) {
+            var result = a % b;
+            if (result < 0) {
+                result += b;
+            }
+            return result;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float AngleDelta(float a, float b, AngleDirection direction) {
+            if (direction == AngleDirection.AntiClockwise) {
+                return Mod(b - a, 360f);
+            } else {
+                return Mod(a - b, 360f);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float InverseLerpAngle(float a, float b, float value, AngleDirection direction) {
+            var deltaB = AngleDelta(a, b, direction);
+            var deltaValue = AngleDelta(a, value, direction);
+            var result = 0f;
+            if (!Mathf.Approximately(deltaB, 0f)) {
+                if (deltaValue > 180f + (0.5f * deltaB)) { // exceeded the midpoint - wrap around to a negative value
+                    result = (deltaValue - 360f) / deltaB;
+                } else {
+                    result = deltaValue / deltaB;
+                }
+            }
+            return result;
         }
     }
 }

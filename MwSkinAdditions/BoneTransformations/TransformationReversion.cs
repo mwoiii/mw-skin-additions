@@ -11,6 +11,12 @@ namespace MwSkinAdditions {
 
         public Vector3 initialLocalPosition = Vector3.zero;
 
+        public TransformationReversion(Transform boneTransform) {
+            this.boneTransform = boneTransform;
+            initialLocalScale = boneTransform.localScale;
+            initialLocalPosition = boneTransform.localPosition;
+        }
+
         public void Apply() {
             if (boneTransform) {
                 boneTransform.localScale = initialLocalScale;

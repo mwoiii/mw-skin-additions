@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace MwSkinAdditions {
     public class BoneTransformation {
-        public string armaturePath;
+        public string targetBonePath;
 
         public Vector3 localScale = Vector3.one;
 
@@ -19,7 +19,7 @@ namespace MwSkinAdditions {
         }
 
         public BoneTransformation(string armaturePath, Vector3 localScale, Vector3 position, string relativeBonePath = null) {
-            this.armaturePath = armaturePath;
+            this.targetBonePath = armaturePath;
             this.localScale = localScale;
             this.position = position;
             this.relativeBonePath = relativeBonePath;

@@ -135,10 +135,7 @@ namespace MwSkinAdditions {
         }
 
         public static void SubscribeGlobalEvents() {
-            EventSub.DifferentSkinAppliedGlobal += RemoveTransformController;
-            EventSub.DifferentSkinAppliedGlobal += RemoveExtraObjects;
-            EventSub.DifferentSkinAppliedGlobal += RemoveVoiceController;
-            EventSub.DifferentSkinAppliedGlobal += RemoveExpressionController;
+            EventSub.DifferentSkinAppliedGlobal += RemoveMwComponents;
         }
 
         public static EventSub GetEventSubFromBody(GameObject body) {
@@ -425,35 +422,12 @@ namespace MwSkinAdditions {
             return null;
         }
 
-        public static void RemoveExtraObjects(GameObject body) {
-            if (body && body.TryGetComponent(out ExtraObjectController extraObjectController)) {
-                foreach (GameObject obj in extraObjectController.extraObjs) {
-                    UnityEngine.Object.Destroy(obj);
+        public static void RemoveMwComponents(GameObject body) {
+            if (body) {
+                var mwComponents = body.GetComponents<MwBaseComponent>();
+                foreach (var component in mwComponents) {
+                    component.MarkForDeletion();
                 }
-
-                UnityEngine.Object.Destroy(extraObjectController);
-            }
-        }
-
-        public static void RemoveTransformController(GameObject body) {
-            if (body && body.TryGetComponent(out TransformController transformController)) {
-                transformController.beingDeleted = true;
-                UnityEngine.Object.Destroy(transformController);
-            }
-        }
-
-        public static void RemoveVoiceController(GameObject body) {
-            if (body && body.TryGetComponent(out VoiceController voiceController)) {
-                voiceController.beingDeleted = true;
-                UnityEngine.Object.Destroy(voiceController);
-            }
-        }
-
-        public static void RemoveExpressionController(GameObject body) {
-            if (body && body.TryGetComponent(out ExpressionController expressionController)) {
-                expressionController.CancelCurrentExpressions();
-                expressionController.beingDeleted = true;
-                UnityEngine.Object.Destroy(expressionController);
             }
         }
 

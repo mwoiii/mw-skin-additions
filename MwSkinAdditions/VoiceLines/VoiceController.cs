@@ -7,7 +7,7 @@ using UnityEngine.Networking;
 
 namespace MwSkinAdditions {
 
-    public class VoiceController : MonoBehaviour {
+    public class VoiceController : MwBaseComponent {
 
         private float timeSinceLastRolledLine;
 
@@ -22,9 +22,7 @@ namespace MwSkinAdditions {
         // the previous index of the played sound, stored so that unique voicelines can play sequentially
         private Dictionary<VoiceArray, int> lastPlayedIndex = new Dictionary<VoiceArray, int>();
 
-        public bool beingDeleted;
-
-        public void Init(EventSub eventSub) {
+        public override void Init(EventSub eventSub) {
             voiceGroupStopwatches = new Dictionary<VoiceGroup, float>();
             if (eventSub?.options?.voiceGroups != null) {
                 foreach (VoiceGroup voiceGroup in eventSub.options.voiceGroups) {

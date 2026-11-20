@@ -117,24 +117,28 @@ namespace MwSkinAdditions {
         public void Init() {
             SkinEvents.Register(this);
 
-            if (options?.boneTransformations != null) {
-                SubscribeTransformEvents();
+            if (options?.boneTransformations != null && (Stage.instance || options.transformInCSS)) {
+                SubscribeAddMwComponent<TransformController>();
             }
 
             if (options?.extraObjects != null) {
-                SubscribeExtraObjectEvents();
+                SubscribeAddMwComponent<ExtraObjectController>();
             }
 
             if (options?.isAnimated == true) {
-                SubscribeAnimationEvents();
+                SubscribeAddMwComponent<ExpressionController>();
             }
 
             if (options?.voiceGroups != null) {
-                SubscribeVoiceEvents();
+                SubscribeAddMwComponent<VoiceController>();
+            }
+
+            if (options?.correctiveBlendShapes != null) {
+                SubscribeAddMwComponent<CorrectionController>();
             }
 
             if (options?.customIcons != null) {
-                SubscribeCustomIconEvents();
+                SkinAppliedRun += SwapBodyIconRun;
             }
 
             # region Debug
@@ -169,69 +173,16 @@ namespace MwSkinAdditions {
             #endregion
         }
 
-        private void SubscribeTransformEvents() {
-            SkinAppliedRun += AddTransformController;
-            SkinAppliedLobbyEarly += AddTransformController;
+        private void SubscribeAddMwComponent<T>() where T : MwBaseComponent {
+            SkinAppliedRun += AddMwComponent<T>;
+            SkinAppliedLobbyEarly += AddMwComponent<T>;
         }
 
-        private void AddTransformController(GameObject body) {
-            if (options == null || (!Run.instance && !options.transformInCSS)) {
-                return;
+        private void AddMwComponent<T>(GameObject body) where T : MwBaseComponent {
+            if (!body.TryGetComponent(out T mwComponent) || mwComponent.beingDeleted) {
+                mwComponent = body.AddComponent<T>().SwapWith(mwComponent);
             }
-
-            TransformController newController = body.AddComponent<TransformController>();
-            if (body.TryGetComponent(out TransformController oldController) && oldController.beingDeleted) {
-                newController.transformReversions = oldController.transformReversions;
-                oldController.RevertPositionAndScale();
-            }
-            newController.Init(this);
-        }
-
-        private void SubscribeExtraObjectEvents() {
-            SkinAppliedRun += AddExtraObjects;
-            SkinAppliedLobbyEarly += AddExtraObjects;
-        }
-
-        private void AddExtraObjects(GameObject body) {
-            Transform model = SkinEvents.GetModelFromEventBody(body).transform;
-            ExtraObjectController extraObjectController = body.AddComponent<ExtraObjectController>();
-
-            foreach (ExtraObject extraObject in options.extraObjects) {
-                GameObject obj = UnityEngine.Object.Instantiate(extraObject.prefab);
-                obj.transform.parent = model.Find(extraObject.armatureParentPath);
-                obj.transform.localPosition = extraObject.localPosition;
-                obj.transform.localEulerAngles = extraObject.localEulerAngles;
-                obj.transform.localScale = extraObject.localScale;
-                extraObjectController.extraObjs.Add(obj);
-            }
-        }
-
-        private void SubscribeAnimationEvents() {
-            SkinAppliedRun += AddExpressionController;
-            SkinAppliedLobbyEarly += AddExpressionController;
-        }
-
-        private void AddExpressionController(GameObject body) {
-            if (!body.TryGetComponent(out ExpressionController expressionController) || expressionController.beingDeleted) {
-                expressionController = body.AddComponent<ExpressionController>();
-            }
-            expressionController.Init(this);
-        }
-
-        private void SubscribeVoiceEvents() {
-            SkinAppliedRun += AddVoiceController;
-            SkinAppliedLobbyEarly += AddVoiceController;
-        }
-
-        private void AddVoiceController(GameObject body) {
-            if (!body.TryGetComponent(out VoiceController voiceController) || voiceController.beingDeleted) {
-                voiceController = body.AddComponent<VoiceController>();
-            }
-            voiceController.Init(this);
-        }
-
-        private void SubscribeCustomIconEvents() {
-            SkinAppliedRun += SwapBodyIconRun;
+            mwComponent.Init(this);
         }
 
         private static void SwapBodyIconRun(GameObject body) {

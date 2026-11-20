@@ -5,6 +5,8 @@ namespace MwSkinAdditions {
     public class EventSubOptions {
         public BoneTransformation[] boneTransformations = null;
 
+        public CorrectiveBlendShape[] correctiveBlendShapes = null;
+
         public BlendShapeAnimation[] blinkAnimations = null;
 
         public IdleAnimation[] conditionalIdleAnimations = null;

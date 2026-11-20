@@ -22,7 +22,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="dteeicons">
-      <HintPath>lib\dteeicons-nstrip.dll</HintPath>
+      <HintPath>..\lib\dteeicons-nstrip.dll</HintPath>
 	  <Private>False</Private>
     </Reference>
   </ItemGroup>

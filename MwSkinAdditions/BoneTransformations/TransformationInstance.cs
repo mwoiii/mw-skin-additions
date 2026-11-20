@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using RoR2;
+using UnityEngine;
 
 namespace MwSkinAdditions {
     public class TransformationInstance {
@@ -17,6 +18,29 @@ namespace MwSkinAdditions {
         public bool shouldApply = true;
 
         public Animator animator;
+
+        public BoneTransformation baseData;
+
+        public bool resolved;
+
+        public TransformationInstance(GameObject model, Animator animator, BoneTransformation baseData) {
+            this.model = model;
+            this.animator = animator;
+            this.baseData = baseData;
+            if (model) {
+                boneTransform = model.transform.Find(baseData.targetBonePath);
+                shouldApply = (
+                    // in a run
+                    (Run.instance && ((baseData.contexts & TransformContexts.Run) == TransformContexts.Run)) ||
+                    // in css
+                    (!Run.instance && ((baseData.contexts & TransformContexts.CSS) == TransformContexts.CSS))
+                );
+                SetRelativeBoneByPath(baseData.relativeBonePath);
+                if (boneTransform) {
+                    resolved = true;
+                }
+            }
+        }
 
         public void SetRelativeBoneByPath(string path) {
             if (path != null) {
