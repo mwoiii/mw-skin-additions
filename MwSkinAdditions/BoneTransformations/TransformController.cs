@@ -90,7 +90,7 @@ namespace MwSkinAdditions {
                         transformReversions.Add(transformInstance.boneTransform, new TransformationReversion(transformInstance.boneTransform));
                     }
                 } else {
-                    Log.Error($"Failed to resolve TransformationInstance with target bone path \"{transformInstance.baseData.targetBonePath}\"");
+                    Log.Error($"Failed to resolve TransformationInstance with target bone path \"{transformInstance.source.targetBonePath}\"");
                 }
             }
 
@@ -113,14 +113,14 @@ namespace MwSkinAdditions {
                 }
 
                 Transform boneTransform = instance.boneTransform;
-                BoneTransformation baseData = instance.baseData;
+                BoneTransformation source = instance.source;
 
                 // apply position
                 if ((!characterBody || (characterBody && !characterBody.currentVehicle)) && animator && animator.enabled) {
                     Transform relativeBone = instance.relativeBoneOverride ? instance.relativeBoneOverride : instance.relativeBone;
                     bool localHasMoved = instance.prevLocalPosition != boneTransform.localPosition;
                     if (boneTransform && relativeBone && (localHasMoved || forcePositionUpdate)) {
-                        Vector3 positionOffset = instance.positionOverride != null ? (Vector3)instance.positionOverride : baseData.position;
+                        Vector3 positionOffset = instance.positionOverride != null ? (Vector3)instance.positionOverride : source.position;
                         if (!localHasMoved) {
                             boneTransform.position = relativeBone.TransformPoint(positionOffset - instance.prevPositionOffset);
                         } else {
@@ -133,11 +133,11 @@ namespace MwSkinAdditions {
 
                 // apply scale
                 if (instance.boneTransform) {
-                    boneTransform.localScale = instance.localScaleOverride != null ? (Vector3)instance.localScaleOverride : baseData.localScale;
+                    boneTransform.localScale = instance.localScaleOverride != null ? (Vector3)instance.localScaleOverride : source.localScale;
                 }
 
                 // run callbacks
-                baseData.OnUpdate?.Invoke(instance);
+                source.OnUpdate?.Invoke(instance);
             }
             forcePositionUpdate = false;
         }

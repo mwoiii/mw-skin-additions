@@ -19,23 +19,23 @@ namespace MwSkinAdditions {
 
         public Animator animator;
 
-        public BoneTransformation baseData;
+        public BoneTransformation source;
 
         public bool resolved;
 
-        public TransformationInstance(GameObject model, Animator animator, BoneTransformation baseData) {
+        public TransformationInstance(GameObject model, Animator animator, BoneTransformation source) {
             this.model = model;
             this.animator = animator;
-            this.baseData = baseData;
+            this.source = source;
             if (model) {
-                boneTransform = model.transform.Find(baseData.targetBonePath);
+                boneTransform = model.transform.Find(source.targetBonePath);
                 shouldApply = (
                     // in a run
-                    (Run.instance && ((baseData.contexts & TransformContexts.Run) == TransformContexts.Run)) ||
+                    (Run.instance && ((source.contexts & TransformContexts.Run) == TransformContexts.Run)) ||
                     // in css
-                    (!Run.instance && ((baseData.contexts & TransformContexts.CSS) == TransformContexts.CSS))
+                    (!Run.instance && ((source.contexts & TransformContexts.CSS) == TransformContexts.CSS))
                 );
-                SetRelativeBoneByPath(baseData.relativeBonePath);
+                SetRelativeBoneByPath(source.relativeBonePath);
                 if (boneTransform) {
                     resolved = true;
                 }

@@ -18,8 +18,8 @@ namespace MwSkinAdditions {
         public BoneTransformation() {
         }
 
-        public BoneTransformation(string armaturePath, Vector3 localScale, Vector3 position, string relativeBonePath = null) {
-            this.targetBonePath = armaturePath;
+        public BoneTransformation(string targetBonePath, Vector3 localScale, Vector3 position, string relativeBonePath = null) {
+            this.targetBonePath = targetBonePath;
             this.localScale = localScale;
             this.position = position;
             this.relativeBonePath = relativeBonePath;
