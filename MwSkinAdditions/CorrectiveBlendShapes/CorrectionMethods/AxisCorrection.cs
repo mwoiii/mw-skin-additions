@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using static MwSkinAdditions.MwUtils;
 
-namespace MwSkinAdditions.CorrectiveBlendShapes {
+namespace MwSkinAdditions {
     public class AxisCorrection : BaseCorrectionMethod {
         public float minAngle;
 
@@ -44,8 +44,8 @@ namespace MwSkinAdditions.CorrectiveBlendShapes {
 
             var currentAngle = instance.boneTransform.localEulerAngles[(int)targetAxis];
             var pos = InverseLerpAngle(minAngle, maxAngle, currentAngle, direction);
+            float weight = -1f;
             if (pos > inverseLerpLowerThreshold && pos < inverseLerpUpperThreshold) {
-                float weight;
                 if (pos < 0) { // in lower padding
                     weight = 0f;
                 } else if (pos <= 1) { // between 0 and 1
@@ -53,10 +53,8 @@ namespace MwSkinAdditions.CorrectiveBlendShapes {
                 } else { // in upper padding
                     weight = 100f;
                 }
-                instance.renderer.SetBlendShapeWeight(instance.blendShapeIndex, weight);
-                return weight;
             }
-            return -1f;
+            return weight;
         }
     }
 }

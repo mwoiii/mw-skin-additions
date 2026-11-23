@@ -1,7 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using UnityEngine;
 
-namespace MwSkinAdditions.CorrectiveBlendShapes {
+namespace MwSkinAdditions {
     public class LineCorrection : BaseCorrectionMethod {
 
         public Vector3 point1;
@@ -63,9 +63,7 @@ namespace MwSkinAdditions.CorrectiveBlendShapes {
                 angle = Mathf.Acos(Mathf.Max(Vector3.Dot(localForward, point1), Vector3.Dot(localForward, point2)));
             }
 
-            var weight = Mathf.InverseLerp(startAngle, 0f, angle * Mathf.Rad2Deg) * 100f;
-            instance.renderer.SetBlendShapeWeight(instance.blendShapeIndex, weight);
-            return weight;
+            return Mathf.InverseLerp(startAngle, 0f, angle * Mathf.Rad2Deg) * 100f;
         }
 
         public override void StartDebug(CorrectionInstance instance) {

@@ -36,7 +36,7 @@ namespace MwSkinAdditions {
                 if (!instance.renderer) {
                     continue;
                 }
-                instance.source.correctionMethod.Evaluate(instance);
+                instance.source.correctionMethod.EvaluateAndApply(instance);
             }
         }
 

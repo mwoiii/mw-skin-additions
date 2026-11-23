@@ -1,6 +1,6 @@
 ﻿using RoR2BepInExPack.Utilities;
 
-namespace MwSkinAdditions.CorrectiveBlendShapes {
+namespace MwSkinAdditions {
     public class DuoCorrection : BaseCorrectionMethod {
 
         public CorrectiveBlendShape correction1;
@@ -30,17 +30,14 @@ namespace MwSkinAdditions.CorrectiveBlendShapes {
                 if (weight1 <= weight2 && weight1 > 0f) {
                     corrections[0].renderer.SetBlendShapeWeight(corrections[0].blendShapeIndex, 0f);
                     corrections[1].renderer.SetBlendShapeWeight(corrections[1].blendShapeIndex, weight2 - weight1);
-                    instance.renderer.SetBlendShapeWeight(instance.blendShapeIndex, weight1);
                     return weight1;
                 } else if (weight2 < weight1 && weight2 > 0f) {
                     corrections[0].renderer.SetBlendShapeWeight(corrections[0].blendShapeIndex, weight1 - weight2);
                     corrections[1].renderer.SetBlendShapeWeight(corrections[1].blendShapeIndex, 0f);
-                    instance.renderer.SetBlendShapeWeight(instance.blendShapeIndex, weight2);
                     return weight2;
                 } else {
                     corrections[0].renderer.SetBlendShapeWeight(corrections[0].blendShapeIndex, weight1);
                     corrections[1].renderer.SetBlendShapeWeight(corrections[1].blendShapeIndex, weight2);
-                    instance.renderer.SetBlendShapeWeight(instance.blendShapeIndex, 0f);
                     return 0f;
                 }
             }

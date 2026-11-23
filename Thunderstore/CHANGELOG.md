@@ -1,3 +1,7 @@
+## 1.3.0
+
+- Added Corrective BlendShapes functionality
+
 ## 1.2.0
 
 - Added the ability to provide icon portrait overrides on a per-skin basis

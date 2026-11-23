@@ -1,4 +1,4 @@
-﻿namespace MwSkinAdditions.CorrectiveBlendShapes {
+﻿namespace MwSkinAdditions {
     public abstract class BaseCorrectionMethod {
         public bool debug;
 
@@ -11,6 +11,13 @@
         }
 
         public virtual void StartDebug(CorrectionInstance instance) {
+        }
+
+        public virtual void EvaluateAndApply(CorrectionInstance instance) {
+            float weight = Evaluate(instance);
+            if (weight >= 0f) {
+                instance.renderer.SetBlendShapeWeight(instance.blendShapeIndex, weight);
+            }
         }
     }
 }

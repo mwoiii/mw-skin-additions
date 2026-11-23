@@ -1,6 +1,4 @@
-﻿using MwSkinAdditions.CorrectiveBlendShapes;
-
-namespace MwSkinAdditions {
+﻿namespace MwSkinAdditions {
     public class CorrectiveBlendShape {
         public string meshName;
 
@@ -10,24 +8,17 @@ namespace MwSkinAdditions {
 
         public BaseCorrectionMethod correctionMethod;
 
-        public CorrectiveBlendShape(string meshName, string targetBonePath, string blendShapeName, AxisCorrection axisCorrection) {
+        public CorrectiveBlendShape(string meshName, string blendShapeName, BaseCorrectionMethod correctionMethod) {
+            this.meshName = meshName;
+            this.blendShapeName = blendShapeName;
+            this.correctionMethod = correctionMethod;
+        }
+
+        public CorrectiveBlendShape(string meshName, string targetBonePath, string blendShapeName, BaseCorrectionMethod correctionMethod) {
             this.meshName = meshName;
             this.targetBonePath = targetBonePath;
             this.blendShapeName = blendShapeName;
-            correctionMethod = axisCorrection;
-        }
-
-        public CorrectiveBlendShape(string meshName, string targetBonePath, string blendShapeName, LineCorrection lineCorrection) {
-            this.meshName = meshName;
-            this.targetBonePath = targetBonePath;
-            this.blendShapeName = blendShapeName;
-            correctionMethod = lineCorrection;
-        }
-
-        public CorrectiveBlendShape(string meshName, string blendShapeName, DuoCorrection duoCorrection) {
-            this.meshName = meshName;
-            this.blendShapeName = blendShapeName;
-            correctionMethod = duoCorrection;
+            this.correctionMethod = correctionMethod;
         }
     }
 }
